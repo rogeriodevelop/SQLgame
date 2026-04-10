@@ -11,11 +11,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Case, QueryResult } from './types';
 import { cases } from './data/cases';
 
-import Editor from 'react-simple-code-editor';
-import * as Prism from 'prismjs';
-import 'prismjs/components/prism-sql';
-import 'prismjs/themes/prism-tomorrow.css';
-
 // ─── CopyButton ─────────────────────────────────────────────────────────────
 const CopyButton = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
@@ -184,27 +179,23 @@ const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) 
         </div>
       )}
 
-      {/* Editor */}
-      <Editor
+      {/* Textarea */}
+      <textarea
         value={code}
-        onValueChange={code => setCode(code)}
-        highlight={code => {
-          try {
-            return Prism.languages && Prism.languages.sql ? Prism.highlight(code, Prism.languages.sql, 'sql') : code;
-          } catch (e) {
-            return code;
-          }
-        }}
-        padding={15}
-        onKeyDown={(e: any) => handleKeyDown(e)}
-        textareaClassName="sql-editor-textarea"
+        onChange={e => setCode(e.target.value)}
+        onKeyDown={handleKeyDown}
+        spellCheck={false}
         style={{
           flex: 1,
+          background: 'transparent',
+          border: 'none',
+          color: '#93c5fd',
           fontFamily: "'JetBrains Mono', monospace",
           fontSize: '0.9rem',
-          lineHeight: '1.65',
-          background: 'transparent',
-          overflow: 'auto'
+          padding: '0.75rem 1rem',
+          outline: 'none',
+          resize: 'none',
+          lineHeight: '1.65'
         }}
         placeholder={"-- Digite suas queries SQL aqui\n-- Separe múltiplas queries com ;\n-- Use Ctrl+Enter para executar"}
       />

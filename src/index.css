@@ -144,22 +144,3 @@ code, pre, .terminal {
 .shake {
   animation: shake 0.45s ease;
 }
-
-/* Sobrescrever PrismJS para manter a estética do projeto (Glassmorphism e Cores) */
-pre[class*="language-"],
-code[class*="language-"] {
-  background: transparent !important;
-  text-shadow: none !important;
-  margin: 0 !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  color: var(--text-main) !important;
-}
-
-.token.keyword { color: #f472b6 !important; } /* Rosa SQL */
-.token.string { color: #10b981 !important; }  /* Verde texto */
-.token.function { color: #60a5fa !important; } /* Azul funcoes */
-.token.number { color: #fbbf24 !important; }   /* Amarelo numeros */
-
-.sql-editor-textarea:focus {
-  outline: none !important;
-}
