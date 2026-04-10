@@ -156,7 +156,7 @@ export const cases: Case[] = [
       INSERT INTO emprestimos VALUES (802, 52, 'Carlos Bravo', '15:00');
       INSERT INTO emprestimos VALUES (803, 53, 'Helena C.',    '14:30');
       INSERT INTO emprestimos VALUES (804, 54, 'Damien V.',    '16:30');
-      INSERT INTO emprestimos VALUES (805, 55, 'Rogério M.',   '15:00');
+      INSERT INTO emprestimos VALUES (805, 55, 'Rogério M.',   '16:15');
     `,
     solution: 'Damien V.',
     hint:

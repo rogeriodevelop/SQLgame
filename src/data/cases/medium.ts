@@ -31,7 +31,7 @@ export const mediumCases: Case[] = [
       INSERT INTO farmacos VALUES (11, 2, 'Fentanil');
       INSERT INTO farmacos VALUES (12, 3, 'Fentanil');
       INSERT INTO farmacos VALUES (13, 1, 'Morfina');
-      INSERT INTO farmacos VALUES (14, 2, 'Ketamina');
+      INSERT INTO farmacos VALUES (14, 3, 'Ketamina');
 
       INSERT INTO lotes VALUES (100, 10, 'A1');
       INSERT INTO lotes VALUES (101, 11, 'B9');
@@ -100,7 +100,7 @@ export const mediumCases: Case[] = [
 
       INSERT INTO embarques VALUES (1, 100, 50, 'Gate 7');
       INSERT INTO embarques VALUES (2, 101, 51, 'Gate 3');
-      INSERT INTO embarques VALUES (3, 102, 52, 'Gate 7');
+      INSERT INTO embarques VALUES (3, 102, 52, 'Gate 4');
       INSERT INTO embarques VALUES (4, 103, 53, 'Gate 12');
       INSERT INTO embarques VALUES (5, 100, 54, 'Gate 2');
       INSERT INTO embarques VALUES (6, 104, 51, 'Gate 7');

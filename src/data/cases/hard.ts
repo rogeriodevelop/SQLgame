@@ -75,7 +75,7 @@ const erpSchema = `
   INSERT INTO pagamentos VALUES (501, 1001, 'Cripto',      900000,  '2025-02-15');
   INSERT INTO pagamentos VALUES (502, 1002, 'Pix',         24000,   '2025-03-02');
   INSERT INTO pagamentos VALUES (503, 1003, 'Transferência',200000, '2025-03-12');
-  INSERT INTO pagamentos VALUES (504, 1004, 'Cripto',      300000,  '2025-04-02');
+  INSERT INTO pagamentos VALUES (504, 1004, 'Boleto',       300000,  '2025-04-02');
   INSERT INTO pagamentos VALUES (505, 1005, 'Boleto',      300000,  '2025-04-07');
 
   -- Contas a receber
