@@ -144,3 +144,9 @@ code, pre, .terminal {
 .shake {
   animation: shake 0.45s ease;
 }
+
+/* ── SQL Syntax Highlight (overlay) ─────────────────────────────────── */
+.sql-kw     { color: #f472b6; font-weight: 700; }   /* keywords – rosa */
+.sql-string { color: #34d399; }                      /* strings  – verde */
+.sql-number { color: #fbbf24; }                      /* números  – âmbar */
+.sql-comment{ color: #6b7280; font-style: italic; }  /* comentários */

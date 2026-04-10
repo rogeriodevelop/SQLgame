@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Terminal as TerminalIcon, Play, FileText, ShieldAlert, List,
   ChevronRight, CheckCircle2, ChevronLeft, Target, Database, Copy,
@@ -80,6 +80,28 @@ const useSqlDatabase = (initialSchema: string) => {
   return { runQuery, dbError, loading };
 };
 
+// ─── SQL Highlight (puro, sem libs) ─────────────────────────────────────────
+// Recebe texto SQL e devolve HTML com spans coloridos.
+const SQL_KEYWORDS = /\b(SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|NOT|IN|LIKE|IS|NULL|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DROP|ALTER|DISTINCT|COUNT|SUM|AVG|MAX|MIN|UNION|ALL|BETWEEN|CASE|WHEN|THEN|ELSE|END|PRIMARY|KEY|FOREIGN|REFERENCES|INDEX|VIEW|WITH|EXISTS|RETURNING|ASC|DESC)\b/gi;
+
+function sqlHighlight(code: string): string {
+  // Escapa HTML primeiro para segurança
+  const escaped = code
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  return escaped
+    // Comentários -- ...
+    .replace(/(--[^\n]*)/g, '<span class="sql-comment">$1</span>')
+    // Strings 'texto'
+    .replace(/('(?:[^'\\]|\\.)*')/g, '<span class="sql-string">$1</span>')
+    // Números
+    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="sql-number">$1</span>')
+    // Keywords (após escapar HTML, portanto seguro)
+    .replace(SQL_KEYWORDS, '<span class="sql-kw">$&</span>');
+}
+
 // ─── SmartTerminal ───────────────────────────────────────────────────────────
 // Detecta múltiplos statements SQL, mostra abas, executa o selecionado.
 interface SmartTerminalProps {
@@ -90,6 +112,8 @@ interface SmartTerminalProps {
 const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) => {
   const [code, setCode] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const overlayRef  = useRef<HTMLDivElement>(null);
 
   // Quebra o código em statements separados por `;` (ignorando vazios)
   const statements = code
@@ -179,26 +203,70 @@ const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) 
         </div>
       )}
 
-      {/* Textarea */}
-      <textarea
-        value={code}
-        onChange={e => setCode(e.target.value)}
-        onKeyDown={handleKeyDown}
-        spellCheck={false}
-        style={{
-          flex: 1,
-          background: 'transparent',
-          border: 'none',
-          color: '#93c5fd',
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.9rem',
-          padding: '0.75rem 1rem',
-          outline: 'none',
-          resize: 'none',
-          lineHeight: '1.65'
-        }}
-        placeholder={"-- Digite suas queries SQL aqui\n-- Separe múltiplas queries com ;\n-- Use Ctrl+Enter para executar"}
-      />
+      {/* Editor com Highlight ─ técnica overlay (zero libs externas) */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {/* Camada de highlight (atrás) */}
+        <div
+          ref={overlayRef}
+          aria-hidden="true"
+          dangerouslySetInnerHTML={{ __html: sqlHighlight(code) + '\n' }}
+          style={{
+            position: 'absolute', inset: 0,
+            pointerEvents: 'none',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.9rem',
+            lineHeight: '1.65',
+            padding: '0.75rem 1rem',
+            margin: 0,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            overflowY: 'auto',
+            color: 'transparent',  /* o texto real do overlay fica invisível */
+            background: 'transparent',
+          }}
+        />
+        {/* Textarea real (visível apenas o cursor e seleção) */}
+        <textarea
+          ref={textareaRef}
+          value={code}
+          onChange={e => {
+            setCode(e.target.value);
+            // Sincroniza scroll do overlay com o textarea
+            if (overlayRef.current && e.target) {
+              overlayRef.current.scrollTop = e.target.scrollTop;
+            }
+          }}
+          onScroll={e => {
+            if (overlayRef.current) {
+              overlayRef.current.scrollTop = (e.target as HTMLTextAreaElement).scrollTop;
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          spellCheck={false}
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'transparent',
+            border: 'none',
+            /* caret visível, texto transparente para o overlay aparecer */
+            color: 'transparent',
+            caretColor: '#93c5fd',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.9rem',
+            padding: '0.75rem 1rem',
+            outline: 'none',
+            resize: 'none',
+            lineHeight: '1.65',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            overflowY: 'auto',
+            width: '100%',
+            height: '100%',
+            boxSizing: 'border-box',
+            zIndex: 1,
+          }}
+          placeholder={"-- Digite suas queries SQL aqui\n-- Separe múltiplas queries com ;\n-- Use Ctrl+Enter para executar"}
+        />
+      </div>
 
       {/* Erro de execução SQL */}
       {queryError && (
