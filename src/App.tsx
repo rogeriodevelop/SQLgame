@@ -220,8 +220,8 @@ const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) 
             margin: 0,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            overflowY: 'auto',
-            color: 'transparent',  /* o texto real do overlay fica invisível */
+            overflow: 'hidden',        /* scroll controlado pelo textarea */
+            color: '#93c5fd',          /* cor base (texto sem token) */
             background: 'transparent',
           }}
         />
