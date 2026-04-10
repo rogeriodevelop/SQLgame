@@ -365,7 +365,7 @@ export default function App() {
 
   if (loading || dbError) return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', color: dbError ? '#ef4444' : 'var(--accent-primary)', gap: '1rem' }}>
-      {dbError ? <><AlertTriangle size={32} /><p style={{ maxWidth: 400, textAlign: 'center', fontSize: '0.85rem' }}>{dbError}</p></> : <p>CARREGANDO BANCO NOIR…</p>}
+      {dbError ? <><AlertTriangle size={32} /><p style={{ maxWidth: 400, textAlign: 'center', fontSize: '0.85rem' }}>{dbError}</p></> : <p>CARREGANDO GAME SQL…</p>}
     </div>
   );
 
@@ -374,7 +374,7 @@ export default function App() {
       {/* Nav */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.5rem', letterSpacing: '3px', color: 'white', margin: 0 }}>
-          <span style={{ color: 'var(--accent-primary)' }}>SQL</span> NOIR
+          <span style={{ color: 'var(--accent-primary)' }}>Game</span> SQL
         </h1>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button className="btn btn-ghost" onClick={() => setCurrentCaseIndex(Math.max(0, currentCaseIndex - 1))} disabled={currentCaseIndex === 0}>
