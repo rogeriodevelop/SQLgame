@@ -12,7 +12,7 @@ import type { Case, QueryResult } from './types';
 import { cases } from './data/cases';
 
 import Editor from 'react-simple-code-editor';
-import Prism from 'prismjs';
+import * as Prism from 'prismjs';
 import 'prismjs/components/prism-sql';
 import 'prismjs/themes/prism-tomorrow.css';
 
@@ -188,7 +188,13 @@ const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) 
       <Editor
         value={code}
         onValueChange={code => setCode(code)}
-        highlight={code => Prism.highlight(code, Prism.languages.sql, 'sql')}
+        highlight={code => {
+          try {
+            return Prism.languages && Prism.languages.sql ? Prism.highlight(code, Prism.languages.sql, 'sql') : code;
+          } catch (e) {
+            return code;
+          }
+        }}
         padding={15}
         onKeyDown={(e: any) => handleKeyDown(e)}
         textareaClassName="sql-editor-textarea"
