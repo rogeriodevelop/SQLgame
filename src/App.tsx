@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Terminal as TerminalIcon, Play, FileText, ShieldAlert, List,
   ChevronRight, CheckCircle2, ChevronLeft, Target, Database, Copy,
@@ -10,6 +10,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import type { Case, QueryResult } from './types';
 import { cases } from './data/cases';
+
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-sql';
+import 'prismjs/themes/prism-tomorrow.css';
 
 // ─── CopyButton ─────────────────────────────────────────────────────────────
 const CopyButton = ({ text }: { text: string }) => {
@@ -90,7 +95,6 @@ interface SmartTerminalProps {
 const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) => {
   const [code, setCode] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Quebra o código em statements separados por `;` (ignorando vazios)
   const statements = code
@@ -180,24 +184,21 @@ const SmartTerminal: React.FC<SmartTerminalProps> = ({ onExecute, queryError }) 
         </div>
       )}
 
-      {/* Textarea */}
-      <textarea
-        ref={textareaRef}
+      {/* Editor */}
+      <Editor
         value={code}
-        onChange={e => setCode(e.target.value)}
-        onKeyDown={handleKeyDown}
-        spellCheck={false}
+        onValueChange={code => setCode(code)}
+        highlight={code => Prism.highlight(code, Prism.languages.sql, 'sql')}
+        padding={15}
+        onKeyDown={(e: any) => handleKeyDown(e)}
+        textareaClassName="sql-editor-textarea"
         style={{
           flex: 1,
-          background: 'transparent',
-          border: 'none',
-          color: '#93c5fd',
           fontFamily: "'JetBrains Mono', monospace",
           fontSize: '0.9rem',
-          padding: '0.75rem 1rem',
-          outline: 'none',
-          resize: 'none',
-          lineHeight: '1.65'
+          lineHeight: '1.65',
+          background: 'transparent',
+          overflow: 'auto'
         }}
         placeholder={"-- Digite suas queries SQL aqui\n-- Separe múltiplas queries com ;\n-- Use Ctrl+Enter para executar"}
       />
