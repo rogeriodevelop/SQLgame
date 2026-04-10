@@ -4,7 +4,7 @@ import {
   ChevronRight, CheckCircle2, ChevronLeft, Target, Database, Copy,
   AlertTriangle, Layers
 } from 'lucide-react';
-import initSqlJs, { Database as SqlDatabase } from 'sql.js';
+import initSqlJs, { type Database as SqlDatabase } from 'sql.js';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 
