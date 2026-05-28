@@ -315,7 +315,7 @@ export const mediumCases: Case[] = [
     description:
       'Um carregamento de C4 sumiu. Apenas soldados da "Base Delta" são suspeitos. Vários soldados de várias bases sacaram armamentos diferentes. Você precisa unir: base -> pelotao -> soldado -> saque -> arma.',
     objective:
-      'Encontre o NOME do soldado lotado na "Base Delta" que sacou o armamento do tipo "C4".',
+      'Encontre o NOME do soldado lotado na "Base Delta" que foi o PRIMEIRO a sacar o armamento do tipo "C4" (data mais antiga).',
     schema: `
       CREATE TABLE bases (id INTEGER PRIMARY KEY, nome TEXT, pais TEXT);
       CREATE TABLE pelotoes (id INTEGER PRIMARY KEY, base_id INTEGER, regiao TEXT, especialidade TEXT);

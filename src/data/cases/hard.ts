@@ -219,7 +219,7 @@ export const hardCases: Case[] = [
   {
     id: 'hard10',
     title: 'ERP Noir: Operação Final — Feche o Dossiê',
-    difficulty: 'Expert',
+    difficulty: 'Hard',
     description:
       'O dossiê final precisa ligar o motorista "Jack Fuga" ao cliente que recebeu "Ouro em Barra", passando pela filial "Oculta" onde o funcionário foi registrado, e confirmando que o pagamento foi em "Cripto" com conta_receber "Lavado". São 12 tabelas em jogo.',
     objective:
