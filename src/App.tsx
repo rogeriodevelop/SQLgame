@@ -10,7 +10,7 @@ import { BriefingCard } from './components/BriefingCard';
 import { SmartTerminal } from './components/SmartTerminal';
 import { ResultsTable } from './components/ResultsTable';
 import { ERDiagram } from './components/ERDiagram';
-import { SuspectDossier } from './components/SuspectDossier';
+import { SchemaViewer } from './components/SchemaViewer';
 import { RpgCharacterSheet } from './components/RpgCharacterSheet';
 
 // Hooks
@@ -19,6 +19,22 @@ import { useSqlDatabase } from './hooks/useSqlDatabase';
 
 // Tipos
 import type { QueryResult } from './types';
+
+// Normaliza texto para comparação tolerante (caixa, acentos, espaços)
+const normalize = (s: string) =>
+  s.trim()
+   .toLowerCase()
+   .normalize('NFD')
+   .replace(/[\u0300-\u036f]/g, '')
+   .replace(/\s+/g, ' ');
+
+// Feedback tátil de erro no campo de acusação
+const shakeAnswerInput = () => {
+  const input = document.getElementById('answer-input');
+  if (!input) return;
+  input.classList.add('shake');
+  setTimeout(() => input.classList.remove('shake'), 450);
+};
 
 // Utilitário de Efeitos Sonoros Retro (Web Audio API)
 const playRetroSound = (type: 'success' | 'error' | 'click') => {
@@ -88,6 +104,8 @@ export default function App() {
   const [answerError, setAnswerError] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  // Prova de investigação: o jogador já rodou uma query que retornou a solução?
+  const [provedBySql, setProvedBySql] = useState(false);
 
   useEffect(() => {
     const isAlreadySolved = solvedCases.includes(currentCase.id);
@@ -98,6 +116,7 @@ export default function App() {
     setAnswerInput('');
     setAnswerError(null);
     setAttempts(0);
+    setProvedBySql(false);
   }, [currentCaseIndex, solvedCases, currentCase.id]);
 
   const handleExecute = (query: string) => {
@@ -105,6 +124,15 @@ export default function App() {
     const { result: res, error: err } = runQuery(query);
     setResult(res);
     setQueryError(err);
+
+    // Marca a prova quando alguma célula do resultado bate com a solução do caso
+    if (res && !provedBySql) {
+      const target = normalize(currentCase.solution);
+      const hit = res.values.some(row =>
+        row.some(cell => cell !== null && normalize(String(cell)) === target)
+      );
+      if (hit) setProvedBySql(true);
+    }
   };
 
   const handleSolve = () => {
@@ -114,12 +142,17 @@ export default function App() {
       return;
     }
 
-    const normalize = (s: string) =>
-      s.trim()
-       .toLowerCase()
-       .normalize('NFD')
-       .replace(/[\u0300-\u036f]/g, '')
-       .replace(/\s+/g, ' ');
+    // Gate anti-chute: sem uma consulta que tenha retornado o responsável, a acusação
+    // não é avaliada. A checagem vem ANTES da comparação de propósito — assim a
+    // mensagem é idêntica para palpite certo e errado e não confirma nada ao jogador.
+    if (!provedBySql) {
+      const next = attempts + 1;
+      setAttempts(next);
+      playRetroSound('error');
+      setAnswerError('Acusação sem provas. Investigue no terminal SQL até que uma consulta revele o responsável.');
+      shakeAnswerInput();
+      return;
+    }
 
     if (normalize(answerInput) === normalize(currentCase.solution)) {
       setSolved(true);
@@ -138,12 +171,7 @@ export default function App() {
       setAttempts(next);
       playRetroSound('error');
       setAnswerError(`❌ Resposta incorreta. Tente novamente.${next >= 3 ? ' Precisa de uma dica?' : ''}`);
-      
-      const input = document.getElementById('answer-input');
-      if (input) {
-        input.classList.add('shake');
-        setTimeout(() => input.classList.remove('shake'), 450);
-      }
+      shakeAnswerInput();
     }
   };
 
@@ -201,7 +229,7 @@ export default function App() {
       {/* Grid Principal de Jogo */}
       <main className="grid-layout" style={{ flex: 1, minHeight: 0 }}>
         
-        {/* Coluna 1: RpgCharacterSheet, Briefing do Caso & Dossiê de Suspeitos */}
+        {/* Coluna 1: RpgCharacterSheet, Briefing do Caso & Esquema do Banco */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', overflowY: 'auto', paddingRight: '0.25rem' }}>
           <div style={{ flexShrink: 0 }}>
             <RpgCharacterSheet
@@ -220,8 +248,8 @@ export default function App() {
               }}
             />
           </div>
-          <div style={{ flexShrink: 0 }}>
-            <SuspectDossier currentCase={currentCase} />
+          <div style={{ flex: 1, minHeight: '220px' }}>
+            <SchemaViewer currentCase={currentCase} />
           </div>
         </section>
 
@@ -263,7 +291,11 @@ export default function App() {
                 <h3 style={{ fontSize: '0.72rem', color: 'var(--accent-secondary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, letterSpacing: '1px' }}>
                   <Target size={13} /> CONCLUSÃO DO CASO
                 </h3>
-                
+
+                <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0 0 0.6rem', lineHeight: 1.45 }}>
+                  A central só aceita acusações comprovadas por consulta SQL.
+                </p>
+
                 <input
                   id="answer-input"
                   type="text"
