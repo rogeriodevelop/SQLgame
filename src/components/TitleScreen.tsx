@@ -52,13 +52,17 @@ export function TitleScreen({ onStart, onContinue, hasProgress }: Props) {
           width: '100%',
           maxWidth: '680px',
           padding: 'clamp(1.5rem, 4vw, 2.5rem)',
-          border: '1px solid rgba(59, 130, 246, 0.25)',
+          border: '1px solid rgba(34, 211, 238, 0.25)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-2)' }}>
           <Database size={26} style={{ color: 'var(--accent-primary)' }} aria-hidden />
-          <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', letterSpacing: '1px', margin: 0 }}>
-            <span style={{ color: 'var(--accent-primary)' }}>Game</span> SQL
+          <h1
+            className="glitch"
+            data-text="GAME SQL"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 2.6rem)', letterSpacing: '5px', margin: 0 }}
+          >
+            GAME SQL
           </h1>
         </div>
 

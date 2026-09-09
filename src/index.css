@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
 @import './styles/tokens.css';
 
 * {
@@ -8,11 +8,7 @@
 }
 
 body {
-  background-color: var(--bg-dark);
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 40%);
-  background-attachment: fixed;
+  background-color: var(--bg-void);
   color: var(--text-main);
   font-family: var(--font-ui);
   font-size: var(--fs-md);
@@ -21,16 +17,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Fundo: malha técnica + duas auras neon fixas. Substitui os dois radial
+   gradients azulados, que não liam como nada em particular. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--bg-void);
+  background-image:
+    radial-gradient(ellipse at 12% 0%, rgba(34, 211, 238, 0.1) 0%, transparent 45%),
+    radial-gradient(ellipse at 88% 100%, rgba(255, 61, 154, 0.08) 0%, transparent 45%),
+    linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+}
+
 h1, h2, h3, h4 {
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
-code, pre, .terminal {
-  font-family: var(--font-mono);
-}
+code, pre, .terminal { font-family: var(--font-mono); }
 
-/* Conteúdo visível só para leitores de tela. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -42,26 +53,93 @@ code, pre, .terminal {
   border: 0;
 }
 
+/* ── Painel de HUD ────────────────────────────────────────────────────────
+   Nome mantido (.glass-morphism) porque todos os componentes já o usam; o
+   visual é que mudou de vidro fosco arredondado para painel angular com
+   canto superior direito chanfrado e colchetes de canto. */
 .glass-morphism {
+  position: relative;
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(34, 211, 238, 0.06);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  /* Chanfro no canto superior direito — a assinatura angular do estilo. */
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
 }
 
 .glass-morphism:hover {
   border-color: var(--border-strong);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(34, 211, 238, 0.09);
 }
 
-.glow-blue { box-shadow: 0 0 25px rgba(59, 130, 246, 0.1); }
-.glow-amber { box-shadow: 0 0 25px rgba(245, 158, 11, 0.1); }
+/* Colchetes de canto, desenhados só com borda — nada de imagem. */
+.glass-morphism::before,
+.glass-morphism::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  opacity: 0.55;
+}
 
-/* Gutter do terminal */
+.glass-morphism::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid var(--neon-cyan);
+  border-left: 2px solid var(--neon-cyan);
+}
+
+.glass-morphism::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid var(--neon-magenta);
+  border-right: 2px solid var(--neon-magenta);
+}
+
+.glow-blue { box-shadow: 0 0 22px rgba(34, 211, 238, 0.12); }
+.glow-amber { box-shadow: 0 0 22px rgba(255, 61, 154, 0.12); }
+
+/* ── Título com glitch cromático ─────────────────────────────────────────
+   Duas cópias deslocadas em ciano e magenta, recortadas em faixas. */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.glitch::before {
+  color: var(--neon-cyan);
+  transform: translate(-2px, 0);
+  clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+  animation: glitch-x 3.5s infinite steps(2, end);
+}
+
+.glitch::after {
+  color: var(--neon-magenta);
+  transform: translate(2px, 0);
+  clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+  animation: glitch-x 2.7s infinite reverse steps(2, end);
+}
+
+@keyframes glitch-x {
+  0%, 92%, 100% { transform: translate(0, 0); opacity: 0; }
+  93% { transform: translate(-3px, 1px); opacity: 0.85; }
+  96% { transform: translate(3px, -1px); opacity: 0.7; }
+}
+
 .editor-gutter {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -72,18 +150,17 @@ code, pre, .terminal {
   font-size: var(--fs-sm);
   line-height: 1.65;
   user-select: none;
-  text-align: right;
   flex-shrink: 0;
 }
 
-/* Scrollbar */
+/* Scrollbar em ciano, coerente com o resto */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 99px;
+  background: rgba(34, 211, 238, 0.25);
+  border-radius: 0;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
+::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.45); }
 
 .container {
   max-width: 1500px;
@@ -91,10 +168,7 @@ code, pre, .terminal {
   padding: var(--sp-5);
 }
 
-/* ── Layout responsivo ───────────────────────────────────────────────────
-   Antes: 3 colunas fixas viravam um grid de 2 colunas com 3 filhos, e o
-   terceiro (diagrama + acusação) embrulhava para baixo sem desenho. Agora
-   cada ponto de quebra tem um arranjo explícito. */
+/* ── Layout responsivo ─────────────────────────────────────────────────── */
 .grid-layout {
   display: grid;
   grid-template-columns: minmax(300px, 340px) minmax(0, 1fr) minmax(300px, 340px);
@@ -102,7 +176,6 @@ code, pre, .terminal {
   height: calc(100vh - 5.5rem);
 }
 
-/* Notebook: investigação à esquerda, terminal à direita ocupando a altura. */
 @media (max-width: 1280px) {
   .grid-layout {
     grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
@@ -114,7 +187,6 @@ code, pre, .terminal {
   .grid-layout > :nth-child(3) { grid-column: 1 / -1; }
 }
 
-/* Tablet e celular: uma coluna, ordem de leitura = ordem de jogo. */
 @media (max-width: 900px) {
   .container { padding: var(--sp-3); }
   .grid-layout {
@@ -128,49 +200,72 @@ code, pre, .terminal {
   .grid-layout > :nth-child(3) { grid-column: auto; }
 }
 
+/* ── Botões angulares ────────────────────────────────────────────────────
+   Canto inferior direito cortado, rótulo em display maiúscula espaçada. */
 .btn {
-  padding: 0.6rem 1.15rem;
-  border-radius: var(--radius-md);
+  padding: 0.6rem 1.2rem;
   border: 1px solid transparent;
-  font-family: var(--font-ui);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
   font-size: var(--fs-sm);
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  position: relative;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, #1d4ed8 100%);
-  color: white;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.22) 0%, rgba(34, 211, 238, 0.06) 100%);
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+  box-shadow: var(--glow-cyan), inset 0 0 12px rgba(34, 211, 238, 0.08);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-  filter: brightness(1.1);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.38) 0%, rgba(34, 211, 238, 0.12) 100%);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.55), inset 0 0 16px rgba(34, 211, 238, 0.14);
+  color: #d9fbff;
+}
+
+/* Ação de risco: acusar. Magenta separa "consultar" de "comprometer-se". */
+.btn-accent {
+  background: linear-gradient(135deg, rgba(255, 61, 154, 0.24) 0%, rgba(255, 61, 154, 0.06) 100%);
+  border-color: var(--neon-magenta);
+  color: var(--neon-magenta);
+  text-shadow: 0 0 8px rgba(255, 61, 154, 0.5);
+  box-shadow: var(--glow-magenta), inset 0 0 12px rgba(255, 61, 154, 0.08);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 61, 154, 0.4) 0%, rgba(255, 61, 154, 0.12) 100%);
+  box-shadow: 0 0 22px rgba(255, 61, 154, 0.55), inset 0 0 16px rgba(255, 61, 154, 0.14);
+  color: #ffe4f1;
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(34, 211, 238, 0.04);
   color: var(--text-muted);
-  border: 1px solid var(--border-color);
+  border-color: var(--border-color);
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
-  color: white;
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--neon-cyan);
   border-color: var(--border-strong);
 }
 
 .btn:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
-  transform: none !important;
   box-shadow: none !important;
+  text-shadow: none;
 }
 
 @keyframes shake {
@@ -185,29 +280,45 @@ code, pre, .terminal {
 
 .shake { animation: shake 0.45s ease; }
 
-/* ── Realce de sintaxe SQL (overlay) ─────────────────────────────────── */
-.sql-kw { color: #f9a8d4; font-weight: 700; }
-.sql-string { color: #6ee7b7; }
-.sql-number { color: #fcd34d; }
-.sql-comment { color: #94a3b8; font-style: italic; }
+/* ── Realce de sintaxe SQL ───────────────────────────────────────────────
+   Fora do CodeMirror (overlay legado e blocos estáticos). */
+.sql-kw { color: var(--neon-magenta); font-weight: 700; }
+.sql-string { color: var(--neon-lime); }
+.sql-number { color: var(--accent-warn); }
+.sql-comment { color: var(--text-faint); font-style: italic; }
 
-/* ── Monitor CRT ─────────────────────────────────────────────────────── */
-.crt-container {
-  position: relative;
-  overflow: hidden;
-}
+/* ── Monitor CRT ─────────────────────────────────────────────────────────
+   Scanlines mais presentes agora que a estética assume o registro. */
+.crt-container { position: relative; }
 
 .crt-container::before {
-  content: " ";
-  display: block;
-  position: absolute;
+  content: '';
+  position: fixed;
   inset: 0;
-  background:
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.015), rgba(0, 0, 255, 0.04));
   z-index: 999;
-  background-size: 100% 4px, 6px 100%;
   pointer-events: none;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
+    linear-gradient(90deg, rgba(255, 0, 60, 0.05), rgba(0, 255, 200, 0.02), rgba(0, 90, 255, 0.05));
+  background-size: 100% 3px, 6px 100%;
+}
+
+/* Varredura lenta descendo a tela, como um monitor sendo lido. */
+.crt-container::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 120px;
+  z-index: 998;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.045), transparent);
+  animation: crt-sweep 7s linear infinite;
+}
+
+@keyframes crt-sweep {
+  0% { top: -120px; }
+  100% { top: 100%; }
 }
 
 @keyframes crt-flicker {
@@ -219,51 +330,47 @@ code, pre, .terminal {
 .crt-flicker { animation: crt-flicker 0.15s infinite; }
 
 @keyframes neon-glow-pulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.15), inset 0 0 10px rgba(59, 130, 246, 0.05); }
-  50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), inset 0 0 15px rgba(59, 130, 246, 0.15); }
+  0%, 100% { box-shadow: 0 0 14px rgba(34, 211, 238, 0.25); }
+  50% { box-shadow: 0 0 26px rgba(34, 211, 238, 0.6); }
 }
 
 .pulse-glow-active { animation: neon-glow-pulse 2s infinite ease-in-out; }
 
 .cyber-grid {
-  background-size: 20px 20px;
+  background-size: 22px 22px;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(34, 211, 238, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
 }
 
-/* ── Widgets de RPG ──────────────────────────────────────────────────── */
+/* ── Barras de status ────────────────────────────────────────────────────
+   Segmentadas, como medidor de HUD, em vez de barra contínua lisa. */
 .rpg-bar-container {
   width: 100%;
-  height: 12px;
-  background: rgba(0, 0, 0, 0.5);
+  height: 10px;
+  background: rgba(0, 0, 0, 0.6);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .rpg-bar-fill {
   height: 100%;
-  border-radius: 3px;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Recorte vertical repetido dá o aspecto de células de energia. */
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
 }
 
-/* O brilho corria sobre `100-percent`, valor inválido que anulava o gradiente. */
 .rpg-bar-fill::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  animation: shine-bar 2s infinite linear;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+  animation: shine-bar 2.4s infinite linear;
 }
 
 @keyframes shine-bar {
@@ -271,83 +378,27 @@ code, pre, .terminal {
   100% { transform: translateX(100%); }
 }
 
-.rpg-inventory-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--sp-2);
-}
-
-.rpg-item-slot {
-  aspect-ratio: 1 / 1;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  /* Era `justify: center`, propriedade inexistente — os ícones ficavam à esquerda. */
-  justify-content: center;
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.rpg-item-slot.active {
-  border-color: var(--accent-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.25);
-  cursor: pointer;
-}
-
-.rpg-item-slot.active:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-secondary);
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
-}
-
-.rpg-item-slot.locked {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.rpg-dialog-bubble {
-  border: 1px solid var(--border-color);
-  background: rgba(10, 12, 16, 0.9);
-  border-radius: 12px;
-  position: relative;
-}
-
-.rpg-dialog-bubble::before {
-  content: "";
-  position: absolute;
-  top: 15px;
-  left: -8px;
-  border-width: 8px 8px 8px 0;
-  border-style: solid;
-  border-color: transparent var(--border-color) transparent transparent;
-  display: block;
-  width: 0;
-}
-
-.rpg-dialog-bubble::after {
-  content: "";
-  position: absolute;
-  top: 15px;
-  left: -7px;
-  border-width: 8px 8px 8px 0;
-  border-style: solid;
-  border-color: transparent rgba(10, 12, 16, 0.9) transparent transparent;
-  display: block;
-  width: 0;
-}
-
+/* ── Avatar ──────────────────────────────────────────────────────────── */
 .rpg-avatar-hover {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
 }
 
 .rpg-avatar-hover:hover { transform: translateY(-2px) scale(1.05); }
 .rpg-avatar-hover:hover .rpg-avatar-overlay { opacity: 1 !important; }
 
 .rpg-avatar-select-card {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease !important;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
 }
 
-.rpg-avatar-select-card:hover { transform: translateY(-3px) scale(1.04); }
+.rpg-avatar-select-card:hover { transform: translateY(-3px) scale(1.03); }
+
+/* ── Balão de diálogo da E.V.A. ───────────────────────────────────────── */
+.rpg-dialog-bubble {
+  border: 1px solid var(--border-color);
+  border-left: 2px solid var(--neon-cyan);
+  background: rgba(6, 12, 22, 0.92);
+  border-radius: 0;
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}

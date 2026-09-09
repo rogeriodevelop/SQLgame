@@ -55,7 +55,7 @@ export function AccusationPanel({ onAccuse, wrongAttempts }: Props) {
       style={{
         padding: 'var(--sp-4)',
         background: 'var(--bg-card)',
-        border: '1px solid rgba(245, 158, 11, 0.22)',
+        border: '1px solid rgba(255, 61, 154, 0.22)',
         flexShrink: 0,
       }}
     >
@@ -116,8 +116,8 @@ export function AccusationPanel({ onAccuse, wrongAttempts }: Props) {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             style={{
-              background: 'rgba(244,63,94,0.1)',
-              border: '1px solid rgba(244,63,94,0.25)',
+              background: 'rgba(255, 77, 109,0.1)',
+              border: '1px solid rgba(255, 77, 109,0.25)',
               borderRadius: 'var(--radius-sm)',
               padding: 'var(--sp-2)',
               marginBottom: 'var(--sp-2)',
@@ -141,16 +141,11 @@ export function AccusationPanel({ onAccuse, wrongAttempts }: Props) {
 
       <button
         type="button"
-        className="btn btn-primary"
+        className="btn btn-accent"
         onClick={submit}
-        style={{
-          width: '100%',
-          justifyContent: 'center',
-          fontSize: 'var(--fs-sm)',
-          background: 'linear-gradient(135deg, var(--accent-secondary) 0%, #d97706 100%)',
-        }}
+        style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-sm)' }}
       >
-        ENVIAR DOSSIÊ
+        Enviar dossiê
       </button>
     </motion.section>
   );

@@ -52,7 +52,7 @@ export function SkillTreeMap({
               position: 'fixed',
               inset: '4%',
               background: 'rgba(10, 12, 16, 0.97)',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
+              border: '1px solid rgba(34, 211, 238, 0.3)',
               borderRadius: '20px',
               zIndex: 201,
               display: 'flex',

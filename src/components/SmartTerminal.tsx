@@ -75,7 +75,7 @@ export function SmartTerminal({ schema, queryError, onExecute, onResetDatabase }
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
-        border: '1px solid rgba(59, 130, 246, 0.15)',
+        border: '1px solid rgba(34, 211, 238, 0.15)',
       }}
     >
       <header
@@ -208,8 +208,8 @@ export function SmartTerminal({ schema, queryError, onExecute, onResetDatabase }
             color: '#fecdd3',
             padding: 'var(--sp-2) var(--sp-4)',
             fontSize: 'var(--fs-xs)',
-            background: 'rgba(244,63,94,0.1)',
-            borderTop: '1px solid rgba(244,63,94,0.25)',
+            background: 'rgba(255, 77, 109,0.1)',
+            borderTop: '1px solid rgba(255, 77, 109,0.25)',
             display: 'flex',
             gap: 'var(--sp-2)',
             alignItems: 'flex-start',

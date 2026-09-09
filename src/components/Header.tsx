@@ -46,8 +46,8 @@ export function Header({
           style={{
             height: '100%',
             width: `${progressPercentage}%`,
-            background: 'linear-gradient(90deg, #3b82f6 0%, #a855f7 100%)',
-            boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)',
+            background: 'linear-gradient(90deg, var(--neon-cyan) 0%, #a855f7 100%)',
+            boxShadow: '0 0 8px rgba(34, 211, 238, 0.5)',
             transition: 'width 0.5s ease-out',
           }}
         />
@@ -65,8 +65,13 @@ export function Header({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
           <Database size={20} style={{ color: 'var(--accent-primary)' }} aria-hidden />
-          <h1 style={{ fontSize: 'var(--fs-xl)', letterSpacing: '2px', margin: 0 }}>
-            <span style={{ color: 'var(--accent-primary)' }}>Game</span> SQL
+          {/* data-text alimenta as duas cópias deslocadas do efeito glitch. */}
+          <h1
+            className="glitch"
+            data-text="GAME SQL"
+            style={{ fontSize: 'var(--fs-xl)', letterSpacing: '3px', margin: 0 }}
+          >
+            GAME SQL
           </h1>
         </div>
 
@@ -98,7 +103,7 @@ export function Header({
                 gap: '3px',
                 padding: '1px 8px',
                 borderRadius: '99px',
-                background: 'rgba(245, 158, 11, 0.15)',
+                background: 'rgba(255, 61, 154, 0.15)',
                 color: 'var(--accent-secondary)',
                 fontWeight: 700,
               }}
@@ -111,7 +116,7 @@ export function Header({
               style={{
                 padding: '1px 8px',
                 borderRadius: '99px',
-                background: 'rgba(59, 130, 246, 0.15)',
+                background: 'rgba(34, 211, 238, 0.15)',
                 color: 'var(--accent-primary)',
                 fontWeight: 700,
               }}

@@ -5,6 +5,8 @@ import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirro
 import { autocompletion, completionKeymap, closeBrackets } from '@codemirror/autocomplete';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 
 type Props = {
   value: string;
@@ -59,6 +61,45 @@ export function SqlEditor({ value, onChange, onRun, completionSchema }: Props) {
           indentWithTab,
         ]),
         oneDark,
+        // Sobrepõe o oneDark (roxo/cinza) para casar com a paleta neon do jogo.
+        EditorView.theme(
+          {
+            '&': { backgroundColor: 'transparent', color: '#dbf4fb' },
+            '.cm-gutters': {
+              backgroundColor: 'rgba(0,0,0,0.25)',
+              color: '#456073',
+              border: 'none',
+              borderRight: '1px solid rgba(34,211,238,0.14)',
+            },
+            '.cm-activeLine': { backgroundColor: 'rgba(34,211,238,0.05)' },
+            '.cm-activeLineGutter': { backgroundColor: 'rgba(34,211,238,0.08)', color: '#22d3ee' },
+            '.cm-cursor': { borderLeftColor: '#22d3ee', borderLeftWidth: '2px' },
+            '.cm-selectionBackground, ::selection': { backgroundColor: 'rgba(34,211,238,0.22) !important' },
+            '.cm-tooltip-autocomplete': {
+              backgroundColor: '#0a101b',
+              border: '1px solid rgba(34,211,238,0.35)',
+            },
+            '.cm-tooltip-autocomplete ul li[aria-selected]': {
+              backgroundColor: 'rgba(34,211,238,0.18)',
+              color: '#22d3ee',
+            },
+          },
+          { dark: true }
+        ),
+        // Palavras-chave em magenta, strings em lima, números em âmbar —
+        // as mesmas três cores usadas fora do editor.
+        syntaxHighlighting(
+          HighlightStyle.define([
+            { tag: tags.keyword, color: '#ff3d9a', fontWeight: 'bold' },
+            { tag: [tags.string, tags.special(tags.string)], color: '#a3e635' },
+            { tag: tags.number, color: '#fbbf24' },
+            { tag: tags.comment, color: '#6b8299', fontStyle: 'italic' },
+            { tag: [tags.operator, tags.punctuation], color: '#9fb3c8' },
+            { tag: [tags.variableName, tags.propertyName], color: '#dbf4fb' },
+            { tag: tags.typeName, color: '#22d3ee' },
+          ]),
+          { fallback: true }
+        ),
         EditorView.lineWrapping,
         placeholder('-- Escreva SQL aqui. Ctrl+Espaço completa tabelas e colunas.\n-- Ctrl+Enter executa.'),
         EditorView.updateListener.of(update => {

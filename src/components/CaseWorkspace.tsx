@@ -64,7 +64,9 @@ export function CaseWorkspace({
         particleCount: 160,
         spread: 80,
         origin: { y: 0.65 },
-        colors: ['#0ad59e', '#3b82f6', '#f59e0b', '#a855f7'],
+        // canvas-confetti desenha no canvas e não resolve CSS variables:
+        // as cores neon precisam vir como hex literal.
+        colors: ['#22d3ee', '#ff3d9a', '#a3e635', '#c084fc'],
       });
     },
     [onSolved]
@@ -216,7 +218,7 @@ function BootScreen({ error }: { error: string | null }) {
             style={{
               width: '40px',
               height: '40px',
-              border: '3px solid rgba(59,130,246,0.15)',
+              border: '3px solid rgba(34, 211, 238,0.15)',
               borderTopColor: 'var(--easy-color)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',

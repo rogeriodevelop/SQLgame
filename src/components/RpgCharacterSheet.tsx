@@ -47,7 +47,7 @@ export function RpgCharacterSheet({ totalScore, totalSolved, casesCount, rank, u
     <section
       className="glass-morphism"
       aria-label="Ficha do investigador"
-      style={{ overflow: 'hidden', border: '1px solid rgba(168, 85, 247, 0.2)' }}
+      style={{ overflow: 'hidden', border: '1px solid rgba(192, 132, 252, 0.2)' }}
     >
       <div
         style={{
@@ -165,7 +165,7 @@ export function RpgCharacterSheet({ totalScore, totalSolved, casesCount, rank, u
                 width: '100%',
                 maxWidth: '460px',
                 background: 'rgba(14, 17, 23, 0.97)',
-                border: '2px solid rgba(168, 85, 247, 0.4)',
+                border: '2px solid rgba(192, 132, 252, 0.4)',
                 padding: 'var(--sp-5)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -205,7 +205,7 @@ export function RpgCharacterSheet({ totalScore, totalSolved, casesCount, rank, u
                       aria-pressed={isSelected}
                       title={option.description}
                       style={{
-                        background: isSelected ? 'rgba(168, 85, 247, 0.1)' : 'rgba(0,0,0,0.25)',
+                        background: isSelected ? 'rgba(192, 132, 252, 0.1)' : 'rgba(0,0,0,0.25)',
                         border: `2px solid ${isSelected ? option.color : 'transparent'}`,
                         borderRadius: 'var(--radius-md)',
                         padding: 'var(--sp-2)',

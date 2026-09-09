@@ -74,7 +74,7 @@ export function BriefingCard({ currentCase, caseNumber, showHint, usedHint, onTo
               fontSize: 'var(--fs-xs)',
               fontWeight: 800,
               color: 'var(--accent-primary)',
-              background: 'rgba(59,130,246,0.15)',
+              background: 'rgba(34, 211, 238,0.15)',
               padding: '1px 6px',
               borderRadius: '4px',
             }}
@@ -158,8 +158,8 @@ export function BriefingCard({ currentCase, caseNumber, showHint, usedHint, onTo
                 <p
                   style={{
                     padding: 'var(--sp-3)',
-                    background: 'rgba(245,158,11,0.06)',
-                    border: '1px solid rgba(245,158,11,0.18)',
+                    background: 'rgba(255, 61, 154,0.06)',
+                    border: '1px solid rgba(255, 61, 154,0.18)',
                     borderRadius: 'var(--radius-md)',
                     fontSize: 'var(--fs-xs)',
                     color: '#fcd34d',
