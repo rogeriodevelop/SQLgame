@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { List, Database, Copy, Check } from 'lucide-react';
-import type { Case } from '../types';
+import type { Case } from '../domain/case';
+import { parseSchema } from '../domain/schemaModel';
 
-interface SchemaViewerProps {
-  currentCase: Case;
-}
+type Props = { currentCase: Case };
 
-const CopyButton = ({ text }: { text: string }) => {
+function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Área de transferência bloqueada; o jogador ainda pode digitar o nome.
+    }
   };
 
   return (
     <button
-      onClick={handleCopy}
+      type="button"
+      onClick={copy}
+      aria-label={copied ? `${label} copiado` : `Copiar ${label}`}
+      title={copied ? 'Copiado' : `Copiar ${label}`}
       style={{
         background: 'transparent',
         border: 'none',
@@ -25,117 +31,101 @@ const CopyButton = ({ text }: { text: string }) => {
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        padding: '0.2rem',
+        padding: '2px',
         borderRadius: '4px',
-        transition: 'color 0.15s ease'
       }}
-      title="Copiar nome da tabela"
     >
-      {copied ? <Check size={13} /> : <Copy size={13} />}
+      {copied ? <Check size={13} aria-hidden /> : <Copy size={13} aria-hidden />}
     </button>
   );
-};
+}
 
-export const SchemaViewer: React.FC<SchemaViewerProps> = ({ currentCase }) => {
-  const tables = currentCase.schema
-    .split(';')
-    .map(s => s.trim())
-    .filter(s => s.toLowerCase().startsWith('create table'));
+/** Lista as tabelas e colunas do caso, com atalho para copiar os nomes. */
+export function SchemaViewer({ currentCase }: Props) {
+  const tables = useMemo(() => parseSchema(currentCase.schema), [currentCase.schema]);
 
   return (
-    <div 
-      className="glass-morphism" 
-      style={{ 
-        padding: '1.25rem', 
-        flex: 1, 
-        overflow: 'hidden', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        minHeight: 0 
+    <section
+      className="glass-morphism"
+      aria-label="Tabelas disponíveis"
+      style={{
+        padding: 'var(--sp-4)',
+        height: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
       }}
     >
-      <div 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.5rem', 
-          marginBottom: '1rem', 
-          color: 'var(--text-muted)', 
-          fontSize: '0.72rem', 
-          fontWeight: 700, 
-          letterSpacing: '1px', 
-          flexShrink: 0 
+      <h3
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--sp-2)',
+          marginBottom: 'var(--sp-3)',
+          color: 'var(--text-muted)',
+          fontSize: 'var(--fs-xs)',
+          letterSpacing: '1px',
+          flexShrink: 0,
         }}
       >
-        <List size={13} style={{ color: 'var(--accent-primary)' }} /> 
+        <List size={13} style={{ color: 'var(--accent-primary)' }} aria-hidden />
         TABELAS DISPONÍVEIS
-      </div>
+        <span style={{ color: 'var(--text-faint)', fontWeight: 400, letterSpacing: 0 }}>
+          ({tables.length})
+        </span>
+      </h3>
 
-      <div style={{ overflow: 'auto', flex: 1, paddingRight: '0.2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {tables.map((stmt, idx) => {
-          const match = stmt.match(/CREATE TABLE\s+(\w+)\s*\((.+)\)/is);
-          if (!match) return null;
-          
-          const tableName = match[1];
-          const columns = match[2].split(',').map(c => c.trim().split(/\s+/));
-
-          return (
-            <div 
-              key={idx} 
-              style={{ 
-                background: 'rgba(0,0,0,0.2)', 
-                padding: '0.75rem 0.85rem', 
-                borderRadius: '10px', 
-                border: '1px solid rgba(255,255,255,0.03)' 
+      <div style={{ overflow: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+        {tables.map(table => (
+          <div
+            key={table.name}
+            style={{
+              background: 'var(--bg-sunken)',
+              padding: 'var(--sp-3)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            <div
+              style={{
+                color: 'var(--accent-primary)',
+                fontWeight: 700,
+                marginBottom: 'var(--sp-2)',
+                fontSize: 'var(--fs-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--sp-2)',
               }}
             >
-              {/* Tabela Header */}
-              <div 
-                style={{ 
-                  color: 'var(--accent-primary)', 
-                  fontWeight: 700, 
-                  marginBottom: '0.5rem', 
-                  fontSize: '0.8rem', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between' 
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: "'JetBrains Mono', monospace" }}>
-                  <Database size={11} /> {tableName}
-                </div>
-                <CopyButton text={tableName} />
-              </div>
-
-              {/* Colunas */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                {columns.map((col, i) => {
-                  const columnName = col[0];
-                  // Une o tipo caso o split divida algo composto (ex: PRIMARY KEY)
-                  const columnType = col.slice(1).join(' ') || 'TEXT';
-
-                  return (
-                    <div 
-                      key={i} 
-                      style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        fontSize: '0.7rem', 
-                        padding: '2px 0', 
-                        borderBottom: i < columns.length - 1 ? '1px solid rgba(255,255,255,0.02)' : 'none',
-                        fontFamily: "'JetBrains Mono', monospace"
-                      }}
-                    >
-                      <span style={{ color: 'var(--text-main)' }}>{columnName}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.62rem' }}>{columnType.toLowerCase()}</span>
-                    </div>
-                  );
-                })}
-              </div>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', fontFamily: 'var(--font-mono)' }}>
+                <Database size={12} aria-hidden /> {table.name}
+              </span>
+              <CopyButton text={table.name} label={`tabela ${table.name}`} />
             </div>
-          );
-        })}
+
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '2px', margin: 0, padding: 0 }}>
+              {table.columns.map(column => (
+                <li
+                  key={column.name}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 'var(--sp-2)',
+                    fontSize: 'var(--fs-xs)',
+                    padding: '2px 0',
+                    fontFamily: 'var(--font-mono)',
+                  }}
+                >
+                  <span>{column.name}</span>
+                  <span style={{ color: 'var(--text-faint)' }}>{column.type.toLowerCase()}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
-};
+}

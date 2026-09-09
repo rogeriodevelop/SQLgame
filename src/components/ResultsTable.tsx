@@ -1,6 +1,6 @@
 import React from 'react';
 import { Database, FileSpreadsheet } from 'lucide-react';
-import type { QueryResult } from '../types';
+import type { QueryResult } from '../domain/case';
 
 interface ResultsTableProps {
   result: QueryResult | null;
@@ -70,7 +70,7 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ result }) => {
         </div>
         <span 
           style={{ 
-            background: 'rgba(59, 130, 246, 0.1)', 
+            background: 'rgba(34, 211, 238, 0.1)', 
             color: 'var(--accent-primary)', 
             padding: '1px 8px', 
             borderRadius: '99px', 
@@ -119,7 +119,7 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ result }) => {
                   transition: 'background 0.15s ease' 
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(59,130,246,0.04)';
+                  e.currentTarget.style.background = 'rgba(34, 211, 238,0.04)';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)';
@@ -138,13 +138,13 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ result }) => {
                       <span 
                         style={{ 
                           padding: '1px 6px', 
-                          background: 'rgba(244, 63, 94, 0.08)', 
+                          background: 'rgba(255, 77, 109, 0.08)', 
                           color: 'var(--error)', 
                           borderRadius: '4px', 
                           fontSize: '0.65rem', 
                           fontStyle: 'italic', 
                           fontWeight: 700,
-                          border: '1px solid rgba(244, 63, 94, 0.15)'
+                          border: '1px solid rgba(255, 77, 109, 0.15)'
                         }}
                       >
                         null

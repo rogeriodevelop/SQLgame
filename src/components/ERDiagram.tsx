@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { parseSchema } from '../domain/schemaModel';
 import { Database, Link2, GitCommit, Info, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Case } from '../types';
+import type { Case } from '../domain/case';
 
 interface ERDiagramProps {
   currentCase: Case;
@@ -17,29 +18,8 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
 
-  // Parse das tabelas a partir do schema SQL
-  const tables = React.useMemo(() => {
-    return currentCase.schema
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.toLowerCase().startsWith('create table'))
-      .map(stmt => {
-        const match = stmt.match(/CREATE TABLE\s+(\w+)\s*\((.+)\)/is);
-        if (!match) return null;
-        
-        const name = match[1];
-        const cols = match[2].split(',').map(c => {
-          const parts = c.trim().split(/\s+/);
-          return {
-            name: parts[0],
-            type: parts[1] || 'TEXT'
-          };
-        });
-
-        return { name, cols };
-      })
-      .filter((t): t is { name: string; cols: { name: string; type: string }[] } => t !== null);
-  }, [currentCase.schema]);
+  // Modelo de tabelas/colunas vem do parser compartilhado (domain/schemaModel).
+  const tables = React.useMemo(() => parseSchema(currentCase.schema), [currentCase.schema]);
 
   // Interface para conexões de relacionamento inteligentes
   interface SmartConnection {
@@ -86,8 +66,8 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
         const tabX = tables[i];
         const tabY = tables[j];
         
-        tabX.cols.forEach(colX => {
-          tabY.cols.forEach(colY => {
+        tabX.columns.forEach(colX => {
+          tabY.columns.forEach(colY => {
             // Regra 1: Nomes de coluna idênticos que terminam com _id (ex: cliente_id em ambas)
             if (colX.name === colY.name && colX.name.toLowerCase().endsWith('_id')) {
               list.push({
@@ -200,7 +180,7 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
         flexDirection: 'column', 
         minHeight: 0,
         background: 'rgba(14, 17, 23, 0.7)',
-        border: '1px solid rgba(59, 130, 246, 0.2)',
+        border: '1px solid rgba(34, 211, 238, 0.2)',
         position: 'relative'
       }}
     >
@@ -245,13 +225,13 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
               background: 'rgba(10, 11, 15, 0.85)', 
               borderRadius: '12px', 
               border: hoveredNode && connectedTables.includes(table.name)
-                ? '1px solid rgba(59, 130, 246, 0.4)'
+                ? '1px solid rgba(34, 211, 238, 0.4)'
                 : (hoveredNode && hoveredNode.tableName === table.name
-                  ? '1px solid rgba(245, 158, 11, 0.4)'
+                  ? '1px solid rgba(255, 61, 154, 0.4)'
                   : '1px solid rgba(255,255,255,0.04)'),
               overflow: 'hidden',
               boxShadow: hoveredNode && (connectedTables.includes(table.name) || hoveredNode.tableName === table.name)
-                ? `0 0 15px rgba(59,130,246,0.08)`
+                ? `0 0 15px rgba(34, 211, 238,0.08)`
                 : '0 4px 12px rgba(0,0,0,0.2)',
               transition: 'all 0.25s ease'
             }}
@@ -260,10 +240,10 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
             <div 
               style={{ 
                 background: hoveredNode && hoveredNode.tableName === table.name
-                  ? 'rgba(245,158,11,0.08)'
+                  ? 'rgba(255, 61, 154,0.08)'
                   : (hoveredNode && connectedTables.includes(table.name)
-                    ? 'rgba(59,130,246,0.08)'
-                    : 'rgba(59,130,246,0.06)'),
+                    ? 'rgba(34, 211, 238,0.08)'
+                    : 'rgba(34, 211, 238,0.06)'),
                 padding: '0.5rem 0.75rem', 
                 borderBottom: '1px solid rgba(255,255,255,0.03)',
                 fontSize: '0.76rem',
@@ -282,14 +262,14 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
                     width: '6px', 
                     height: '6px', 
                     borderRadius: '50%', 
-                    background: hoveredNode && hoveredNode.tableName === table.name ? '#f59e0b' : 'var(--accent-primary)', 
-                    boxShadow: hoveredNode && hoveredNode.tableName === table.name ? '0 0 6px #f59e0b' : '0 0 6px var(--accent-primary)' 
+                    background: hoveredNode && hoveredNode.tableName === table.name ? 'var(--accent-warn)' : 'var(--accent-primary)', 
+                    boxShadow: hoveredNode && hoveredNode.tableName === table.name ? '0 0 6px var(--accent-warn)' : '0 0 6px var(--accent-primary)' 
                   }} 
                 />
                 {table.name}
               </div>
               {hoveredNode && connectedTables.includes(table.name) && (
-                <span style={{ fontSize: '0.58rem', color: 'var(--accent-primary)', background: 'rgba(59,130,246,0.15)', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                <span style={{ fontSize: '0.58rem', color: 'var(--accent-primary)', background: 'rgba(34, 211, 238,0.15)', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
                   CONECTADA
                 </span>
               )}
@@ -297,7 +277,7 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
 
             {/* Listagem de Colunas com Hover interativo */}
             <div style={{ display: 'flex', flexDirection: 'column', padding: '0.35rem 0.5rem' }}>
-              {table.cols.map((col, cIdx) => {
+              {table.columns.map((col, cIdx) => {
                 const hasRelations = smartConnections.some(c => 
                   (c.tableA === table.name && c.colA === col.name) ||
                   (c.tableB === table.name && c.colB === col.name)
@@ -326,15 +306,15 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
                 
                 if (hasRelations) {
                   if (isDirectlyHovered) {
-                    bgColor = 'rgba(245, 158, 11, 0.15)';
-                    colColor = '#f59e0b';
-                    borderColor = 'rgba(245, 158, 11, 0.4)';
-                    glowShadow = '0 0 8px rgba(245, 158, 11, 0.2)';
+                    bgColor = 'rgba(255, 61, 154, 0.15)';
+                    colColor = 'var(--accent-warn)';
+                    borderColor = 'rgba(255, 61, 154, 0.4)';
+                    glowShadow = '0 0 8px rgba(255, 61, 154, 0.2)';
                   } else if (isConnected) {
-                    bgColor = 'rgba(59, 130, 246, 0.15)';
+                    bgColor = 'rgba(34, 211, 238, 0.15)';
                     colColor = 'var(--accent-primary)';
-                    borderColor = 'rgba(59, 130, 246, 0.4)';
-                    glowShadow = '0 0 8px rgba(59, 130, 246, 0.2)';
+                    borderColor = 'rgba(34, 211, 238, 0.4)';
+                    glowShadow = '0 0 8px rgba(34, 211, 238, 0.2)';
                   } else if (isOtherFocussed) {
                     colColor = 'rgba(255,255,255,0.15)';
                   } else {
@@ -374,7 +354,7 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
                         <Link2 
                           size={11} 
                           style={{ 
-                            color: isDirectlyHovered ? '#f59e0b' : 'var(--accent-primary)',
+                            color: isDirectlyHovered ? 'var(--accent-warn)' : 'var(--accent-primary)',
                             opacity: isOtherFocussed ? 0.15 : 1,
                             animation: isConnected ? 'pulse 1.5s infinite' : 'none'
                           }} 
@@ -418,19 +398,19 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
               width: '320px',
               padding: '1rem', 
               background: 'rgba(10, 12, 16, 0.98)', 
-              border: '2px solid rgba(59, 130, 246, 0.6)', 
+              border: '2px solid rgba(34, 211, 238, 0.6)', 
               borderRadius: '12px', 
               fontSize: '0.78rem', 
               fontFamily: "'JetBrains Mono', monospace", 
               color: 'white',
               zIndex: 9999, // Fica sobreposto a tudo
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.95), 0 0 30px rgba(59, 130, 246, 0.4)',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.95), 0 0 30px rgba(34, 211, 238, 0.4)',
               overflow: 'hidden',
               backdropFilter: 'blur(12px)',
               pointerEvents: 'none' // Impede tremor ao passar o mouse por cima acidentalmente
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800, marginBottom: '0.5rem', color: '#f59e0b', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--accent-warn)', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
               <HelpCircle size={14} />
               ⚡ RPG ASSISTENTE DE JOIN:
             </div>
@@ -462,7 +442,7 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
               lineHeight: '1.45' 
             }}>
               💡 <span style={{ color: 'var(--accent-secondary)', fontWeight: 800, letterSpacing: '0.5px' }}>GUIA RÁPIDO DE JOIN:</span><br />
-              Use a cláusula <span style={{ color: 'white', fontWeight: 600 }}>JOIN</span> para mesclar dados relacionados. Esta conexão liga a chave primária <span style={{ color: '#f59e0b' }}>{hoveredNode.colName}</span> à chave estrangeira equivalente para reconstruir a associação de dados.
+              Use a cláusula <span style={{ color: 'white', fontWeight: 600 }}>JOIN</span> para mesclar dados relacionados. Esta conexão liga a chave primária <span style={{ color: 'var(--accent-warn)' }}>{hoveredNode.colName}</span> à chave estrangeira equivalente para reconstruir a associação de dados.
             </div>
           </motion.div>
         )}
