@@ -1,0 +1,92 @@
+/**
+ * Tokens de design do jogo.
+ *
+ * Escala de tipografia com piso em 12px: o layout anterior usava 0.58rem
+ * (~9px) em rótulos e álibis, ilegível e reprovado em contraste. Aqui a menor
+ * fonte utilizável é --fs-xs.
+ */
+
+:root {
+  /* Superfícies */
+  --bg-dark: #07080a;
+  --bg-card: #0e1117;
+  --bg-elevated: #141922;
+  --bg-sunken: rgba(0, 0, 0, 0.28);
+  --glass-bg: rgba(14, 17, 23, 0.7);
+
+  /* Texto — contraste conferido sobre --bg-dark */
+  --text-main: #f1f5f9;
+  --text-muted: #a8b6c8;
+  --text-faint: #7d8b9e;
+
+  /* Marca */
+  --accent-primary: #3b82f6;
+  --accent-secondary: #f59e0b;
+  --success: #10b981;
+  --error: #fb7185;
+
+  /* Dificuldades */
+  --tutorial-color: #38bdf8;
+  --easy-color: #0ad59e;
+  --medium-color: #f59e0b;
+  --hard-color: #f43f5e;
+  --expert-color: #a855f7;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Escala tipográfica */
+  --fs-xs: 0.75rem;   /* 12px — piso */
+  --fs-sm: 0.8125rem; /* 13px */
+  --fs-md: 0.9375rem; /* 15px */
+  --fs-lg: 1.125rem;  /* 18px */
+  --fs-xl: 1.5rem;    /* 24px */
+
+  /* Espaçamento em passos de 4px */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --font-ui: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --focus-ring: 2px solid var(--accent-primary);
+}
+
+/**
+ * Respeita quem pediu menos movimento no sistema operacional.
+ * O flicker de CRT animava a opacidade da aplicação inteira 6x por segundo,
+ * indefinidamente — desconfortável e um repaint constante.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .crt-flicker {
+    animation: none !important;
+  }
+
+  .crt-container::before {
+    display: none !important;
+  }
+}
+
+/* Foco visível e consistente para navegação por teclado. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

@@ -1,111 +1,141 @@
-import React from 'react';
-import { Menu, RotateCcw, Database } from 'lucide-react';
-import type { DetectiveRank } from '../hooks/useAppData';
+import { Menu, RotateCcw, Database, Trophy } from 'lucide-react';
+import type { Rank } from '../domain/progress';
 
-interface HeaderProps {
-  detectiveRank: DetectiveRank;
+type Props = {
+  rank: Rank;
+  upcomingRank: { rank: Rank; missing: number } | null;
+  totalScore: number;
   totalSolved: number;
   casesCount: number;
   progressPercentage: number;
-  onOpenDrawer: () => void;
+  onOpenMap: () => void;
   onResetProgress: () => void;
-}
+};
 
-export const Header: React.FC<HeaderProps> = ({
-  detectiveRank,
+export function Header({
+  rank,
+  upcomingRank,
+  totalScore,
   totalSolved,
   casesCount,
   progressPercentage,
-  onOpenDrawer,
+  onOpenMap,
   onResetProgress,
-}) => {
+}: Props) {
   return (
-    <header style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem', position: 'relative' }}>
-      {/* Barra de progresso ultrafina no topo */}
-      <div 
-        style={{ 
-          position: 'absolute', 
-          top: -24, 
-          left: -24, 
-          right: -24, 
-          height: '4px', 
-          background: 'rgba(255,255,255,0.05)', 
+    <header style={{ marginBottom: 'var(--sp-5)', position: 'relative' }}>
+      {/* Barra de progresso sangrando até as bordas da janela */}
+      <div
+        role="progressbar"
+        aria-valuenow={progressPercentage}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Progresso geral dos casos"
+        style={{
+          position: 'absolute',
+          top: 'calc(var(--sp-5) * -1)',
+          left: 'calc(var(--sp-5) * -1)',
+          right: 'calc(var(--sp-5) * -1)',
+          height: '4px',
+          background: 'rgba(255,255,255,0.05)',
           overflow: 'hidden',
-          zIndex: 10
+          zIndex: 10,
         }}
       >
-        <div 
-          style={{ 
-            height: '100%', 
-            width: `${progressPercentage}%`, 
+        <div
+          style={{
+            height: '100%',
+            width: `${progressPercentage}%`,
             background: 'linear-gradient(90deg, #3b82f6 0%, #a855f7 100%)',
             boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)',
-            transition: 'width 0.5s ease-out'
+            transition: 'width 0.5s ease-out',
           }}
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '48px' }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Database size={20} className="glow-blue" style={{ color: 'var(--accent-primary)' }} />
-          <h1 style={{ fontSize: '1.4rem', letterSpacing: '2px', color: 'white', margin: 0, userSelect: 'none' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 'var(--sp-3)',
+          flexWrap: 'wrap',
+          minHeight: '48px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+          <Database size={20} style={{ color: 'var(--accent-primary)' }} aria-hidden />
+          <h1 style={{ fontSize: 'var(--fs-xl)', letterSpacing: '2px', margin: 0 }}>
             <span style={{ color: 'var(--accent-primary)' }}>Game</span> SQL
           </h1>
         </div>
 
-        {/* Status do Jogador / Patente */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div 
-            className="glass-morphism" 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem', 
-              padding: '0.35rem 0.75rem', 
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+          <div
+            className="glass-morphism"
+            title={
+              upcomingRank
+                ? `Faltam ${upcomingRank.missing} pts para ${upcomingRank.rank.title}`
+                : 'Patente máxima atingida'
+            }
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--sp-2)',
+              padding: '0.35rem 0.85rem',
               borderRadius: '99px',
-              fontSize: '0.78rem',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              background: 'rgba(255,255,255,0.02)'
+              fontSize: 'var(--fs-xs)',
+              background: 'rgba(255,255,255,0.03)',
             }}
           >
-            <span style={{ fontSize: '0.9rem' }}>{detectiveRank.badge}</span>
-            <span style={{ color: 'var(--text-muted)' }}>Patente:</span>
-            <strong style={{ color: 'white' }}>{detectiveRank.title}</strong>
-            <span 
-              style={{ 
-                marginLeft: '0.5rem', 
-                padding: '1px 6px', 
-                borderRadius: '99px', 
-                background: 'rgba(59, 130, 246, 0.15)', 
+            <span aria-hidden style={{ fontSize: 'var(--fs-sm)' }}>{rank.badge}</span>
+            <strong style={{ color: 'white' }}>{rank.title}</strong>
+
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                padding: '1px 8px',
+                borderRadius: '99px',
+                background: 'rgba(245, 158, 11, 0.15)',
+                color: 'var(--accent-secondary)',
+                fontWeight: 700,
+              }}
+            >
+              <Trophy size={11} aria-hidden />
+              {totalScore.toLocaleString('pt-BR')} pts
+            </span>
+
+            <span
+              style={{
+                padding: '1px 8px',
+                borderRadius: '99px',
+                background: 'rgba(59, 130, 246, 0.15)',
                 color: 'var(--accent-primary)',
-                fontWeight: 700
+                fontWeight: 700,
               }}
             >
               {totalSolved}/{casesCount}
             </span>
           </div>
 
-          {/* Reset button */}
-          <button 
-            className="btn btn-ghost" 
+          <button
+            type="button"
+            className="btn btn-ghost"
             onClick={onResetProgress}
-            title="Resetar todo o progresso"
-            style={{ padding: '0.45rem', borderRadius: '8px', border: 'none', background: 'transparent' }}
+            aria-label="Apagar todo o progresso"
+            title="Apagar todo o progresso"
+            style={{ padding: '0.45rem', borderRadius: 'var(--radius-sm)' }}
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={14} aria-hidden />
           </button>
 
-          {/* Drawer trigger button */}
-          <button 
-            className="btn btn-primary" 
-            onClick={onOpenDrawer}
-            style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
-          >
-            <Menu size={14} /> MAPA DE CASOS
+          <button type="button" className="btn btn-primary" onClick={onOpenMap}>
+            <Menu size={14} aria-hidden /> MAPA DE CASOS
           </button>
         </div>
       </div>
     </header>
   );
-};
+}

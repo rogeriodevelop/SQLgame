@@ -1,4 +1,4 @@
-import type { Case } from '../../types';
+import type { Case } from '../../domain/case';
 
 // ERP fictício completo da "Dark Corp" com 12 tabelas densamente populadas.
 // Múltiplos vendedores, filiais, produtos, clientes e motoristas criam incontáveis distratores.

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Database, FileSpreadsheet } from 'lucide-react';
-import type { QueryResult } from '../types';
+import type { QueryResult } from '../domain/case';
 
 interface ResultsTableProps {
   result: QueryResult | null;
