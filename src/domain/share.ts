@@ -11,7 +11,7 @@ export type ShareData = {
   elapsedSeconds: number;
 };
 
-const GAME_URL = 'https://sqlgame-sandy.vercel.app';
+const GAME_URL = 'https://gamesql.vercel.app';
 
 function formatDuration(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);

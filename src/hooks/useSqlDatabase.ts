@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import initSqlJs, { type Database as SqlDatabase, type SqlJsStatic, type SqlValue } from 'sql.js';
+// O package.json do sql.js declara exports["."].browser -> dist/sql-wasm-browser.js,
+// então o bundler empacota o glue "browser", que busca sql-wasm-browser.wasm.
+// Importar a URL do binário correspondente amarra os dois: o Vite emite o .wasm
+// como asset versionado e o caminho nunca diverge do glue que foi empacotado.
+// Depender de uma cópia manual em public/ já quebrou uma vez — o servidor
+// devolvia index.html no lugar do binário e o emscripten abortava com
+// "expected magic word", sem erro de build nem de lint.
+import sqlWasmUrl from 'sql.js/dist/sql-wasm-browser.wasm?url';
 import type { QueryResult } from '../domain/case';
 
 /** sql.js é pesado; uma instância só do runtime serve todos os casos. */
 let sqlEnginePromise: Promise<SqlJsStatic> | null = null;
 
 function loadSqlEngine(): Promise<SqlJsStatic> {
-  sqlEnginePromise ??= initSqlJs({ locateFile: file => `/${file}` });
+  sqlEnginePromise ??= initSqlJs({ locateFile: () => sqlWasmUrl });
   return sqlEnginePromise;
 }
 
