@@ -1,35 +1,31 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, Trophy } from 'lucide-react';
-import { cases } from '../data/cases';
+import { X, Trophy, Lock } from 'lucide-react';
+import { casesByDifficulty, indexOfCase } from '../data/caseRepository';
+import { DIFFICULTY_COLOR_VARS, DIFFICULTY_LABELS, type Difficulty } from '../domain/case';
 
-interface SkillTreeMapProps {
+type Props = {
   isOpen: boolean;
   onClose: () => void;
   currentCaseIndex: number;
   onSelectCase: (index: number) => void;
-  solvedCases: string[];
-}
+  solvedIds: string[];
+  starsForCase: (caseId: string, difficulty: Difficulty) => 0 | 1 | 2 | 3;
+};
 
-export const SkillTreeMap: React.FC<SkillTreeMapProps> = ({
+export function SkillTreeMap({
   isOpen,
   onClose,
   currentCaseIndex,
   onSelectCase,
-  solvedCases,
-}) => {
-  const categories = [
-    { label: 'Fácil (Iniciante)', diff: 'Easy', color: 'var(--easy-color)' },
-    { label: 'Médio (Investigador)', diff: 'Medium', color: 'var(--medium-color)' },
-    { label: 'Difícil (Detetive Chefe)', diff: 'Hard', color: 'var(--hard-color)' },
-    { label: 'Especialista', diff: 'Expert', color: 'var(--expert-color)' },
-  ];
+  solvedIds,
+  starsForCase,
+}: Props) {
+  const groups = casesByDifficulty();
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -44,180 +40,156 @@ export const SkillTreeMap: React.FC<SkillTreeMapProps> = ({
             }}
           />
 
-          {/* Skill Tree Modal Container */}
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mapa de casos"
+            initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
+            exit={{ scale: 0.96, opacity: 0 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            className="crt-container crt-flicker"
             style={{
               position: 'fixed',
-              top: '5%',
-              left: '5%',
-              width: '90%',
-              height: '90%',
-              background: 'rgba(10, 12, 16, 0.95)',
+              inset: '4%',
+              background: 'rgba(10, 12, 16, 0.97)',
               border: '1px solid rgba(59, 130, 246, 0.3)',
               borderRadius: '20px',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(59, 130, 246, 0.1)',
               zIndex: 201,
               display: 'flex',
               flexDirection: 'column',
-              padding: '2rem',
-              overflow: 'hidden'
+              padding: 'clamp(1rem, 3vw, 2rem)',
+              overflow: 'hidden',
             }}
           >
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexShrink: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: 'var(--sp-3)',
+                marginBottom: 'var(--sp-5)',
+                flexShrink: 0,
+              }}
+            >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <Trophy style={{ color: 'var(--accent-secondary)' }} size={24} />
-                  <h2 style={{ color: 'white', fontSize: '1.5rem', margin: 0, letterSpacing: '1px' }}>MAPA DE OPERAÇÕES DE REDE</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                  <Trophy style={{ color: 'var(--accent-secondary)' }} size={22} aria-hidden />
+                  <h2 style={{ fontSize: 'var(--fs-xl)', margin: 0, letterSpacing: '1px' }}>MAPA DE CASOS</h2>
                 </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
-                  Hackee os nós de banco de dados para resolver os crimes da Hydra Syndicate
+                <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', margin: '2px 0 0' }}>
+                  {solvedIds.length} casos fechados · refaça um caso para melhorar as estrelas
                 </p>
               </div>
-              <button 
-                onClick={onClose}
-                className="btn btn-ghost"
-                style={{ padding: '0.5rem', borderRadius: '50%' }}
-              >
-                <X size={20} />
+
+              <button type="button" onClick={onClose} className="btn btn-ghost" aria-label="Fechar mapa" style={{ padding: 'var(--sp-2)' }}>
+                <X size={18} aria-hidden />
               </button>
             </div>
 
-            {/* Conteúdo scrollable do Mapa */}
-            <div 
+            <div
               className="cyber-grid"
-              style={{ 
-                flex: 1, 
-                overflowY: 'auto', 
-                padding: '1rem',
-                borderRadius: '12px',
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: 'var(--sp-4)',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(0,0,0,0.3)',
-                border: '1px solid rgba(255,255,255,0.02)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '2.5rem'
+                gap: 'var(--sp-6)',
               }}
             >
-              {categories.map((cat, catIdx) => {
-                const categoryCases = cases.filter(c => c.difficulty === cat.diff);
-                if (categoryCases.length === 0) return null;
+              {groups.map(({ difficulty, cases }) => {
+                const color = DIFFICULTY_COLOR_VARS[difficulty];
 
                 return (
-                  <div key={catIdx} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    
-                    {/* Dificuldade divisor */}
-                    <div style={{ 
-                      fontSize: '0.85rem', 
-                      fontWeight: 800, 
-                      color: cat.color,
-                      letterSpacing: '2px',
-                      textTransform: 'uppercase',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      <span style={{ height: '2px', width: '20px', background: cat.color }} />
-                      {cat.label}
-                      <span style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${cat.color}33 0%, transparent 100%)` }} />
-                    </div>
+                  <section key={difficulty} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                    <h3
+                      style={{
+                        fontSize: 'var(--fs-sm)',
+                        color,
+                        letterSpacing: '2px',
+                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--sp-2)',
+                        margin: 0,
+                      }}
+                    >
+                      <span aria-hidden style={{ height: '2px', width: '20px', background: color }} />
+                      {DIFFICULTY_LABELS[difficulty]}
+                      <span aria-hidden style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${color} 0%, transparent 100%)`, opacity: 0.25 }} />
+                    </h3>
 
-                    {/* Nodes representados em Grid circular */}
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', 
-                      gap: '1.25rem',
-                      justifyItems: 'center',
-                      padding: '0.5rem 1rem'
-                    }}>
-                      {categoryCases.map(c => {
-                        const globalIndex = cases.findIndex(x => x.id === c.id);
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))',
+                        gap: 'var(--sp-4)',
+                        justifyItems: 'center',
+                      }}
+                    >
+                      {cases.map(item => {
+                        const globalIndex = indexOfCase(item.id);
                         const isActive = globalIndex === currentCaseIndex;
-                        const isSolved = solvedCases.includes(c.id);
+                        const stars = starsForCase(item.id, difficulty);
+                        const isSolved = stars > 0;
 
                         return (
-                          <div key={c.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                          <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--sp-1)', width: '100%' }}>
                             <button
+                              type="button"
                               onClick={() => {
                                 onSelectCase(globalIndex);
                                 onClose();
                               }}
-                              className={isActive ? 'pulse-glow-active' : ''}
+                              className={isActive ? 'pulse-glow-active' : undefined}
+                              aria-current={isActive ? 'true' : undefined}
+                              aria-label={`Caso ${globalIndex + 1}: ${item.title}${isSolved ? `, ${stars} de 3 estrelas` : ', não resolvido'}`}
                               style={{
-                                width: '56px',
-                                height: '56px',
+                                width: '54px',
+                                height: '54px',
                                 borderRadius: '50%',
-                                border: isActive 
-                                  ? `2.5px solid ${cat.color}` 
-                                  : `1.5px solid ${isSolved ? cat.color + '88' : 'rgba(255,255,255,0.06)'}`,
-                                background: isSolved 
-                                  ? `${cat.color}15` 
-                                  : (isActive ? 'rgba(59, 130, 246, 0.1)' : 'rgba(0,0,0,0.5)'),
-                                color: isSolved ? cat.color : (isActive ? 'white' : 'var(--text-muted)'),
+                                border: isActive ? `2.5px solid ${color}` : `1.5px solid ${isSolved ? color : 'var(--border-color)'}`,
+                                background: isSolved ? `color-mix(in srgb, ${color} 14%, transparent)` : 'rgba(0,0,0,0.5)',
+                                color: isSolved ? color : 'var(--text-muted)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '1rem',
+                                fontSize: 'var(--fs-md)',
                                 fontWeight: 800,
-                                fontFamily: "'JetBrains Mono', monospace",
+                                fontFamily: 'var(--font-mono)',
                                 cursor: 'pointer',
-                                position: 'relative',
-                                boxShadow: isSolved ? `0 0 12px ${cat.color}22` : 'none',
-                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                               }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.transform = 'scale(1.1)';
-                                e.currentTarget.style.borderColor = cat.color;
-                                e.currentTarget.style.boxShadow = `0 0 15px ${cat.color}44`;
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'scale(1)';
-                                if (!isActive) {
-                                  e.currentTarget.style.borderColor = isSolved ? `${cat.color}88` : 'rgba(255,255,255,0.06)';
-                                  e.currentTarget.style.boxShadow = isSolved ? `0 0 12px ${cat.color}22` : 'none';
-                                }
-                              }}
-                              title={`Caso #${globalIndex + 1}: ${c.title}`}
                             >
                               {globalIndex + 1}
-
-                              {/* Mini badge check */}
-                              {isSolved && (
-                                <div style={{ 
-                                  position: 'absolute', 
-                                  bottom: -2, 
-                                  right: -2, 
-                                  background: '#07080a', 
-                                  borderRadius: '50%', 
-                                  display: 'flex' 
-                                }}>
-                                  <CheckCircle2 size={13} style={{ color: 'var(--easy-color)' }} />
-                                </div>
-                              )}
                             </button>
-                            <span 
-                              style={{ 
-                                fontSize: '0.62rem', 
+
+                            <span aria-hidden style={{ fontSize: 'var(--fs-xs)', color: isSolved ? 'var(--accent-secondary)' : 'var(--text-faint)', letterSpacing: '1px', height: '1em' }}>
+                              {isSolved ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : <Lock size={10} />}
+                            </span>
+
+                            <span
+                              title={item.title}
+                              style={{
+                                fontSize: 'var(--fs-xs)',
                                 color: isActive ? 'white' : 'var(--text-muted)',
-                                maxWidth: '70px',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
                                 textAlign: 'center',
-                                fontWeight: isActive ? 700 : 400
+                                lineHeight: 1.3,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
                               }}
                             >
-                              {c.title}
+                              {item.title}
                             </span>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
+                  </section>
                 );
               })}
             </div>
@@ -226,4 +198,4 @@ export const SkillTreeMap: React.FC<SkillTreeMapProps> = ({
       )}
     </AnimatePresence>
   );
-};
+}

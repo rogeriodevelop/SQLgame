@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { parseSchema } from '../domain/schemaModel';
 import { Database, Link2, GitCommit, Info, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Case } from '../types';
+import type { Case } from '../domain/case';
 
 interface ERDiagramProps {
   currentCase: Case;
@@ -17,29 +18,8 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
 
-  // Parse das tabelas a partir do schema SQL
-  const tables = React.useMemo(() => {
-    return currentCase.schema
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.toLowerCase().startsWith('create table'))
-      .map(stmt => {
-        const match = stmt.match(/CREATE TABLE\s+(\w+)\s*\((.+)\)/is);
-        if (!match) return null;
-        
-        const name = match[1];
-        const cols = match[2].split(',').map(c => {
-          const parts = c.trim().split(/\s+/);
-          return {
-            name: parts[0],
-            type: parts[1] || 'TEXT'
-          };
-        });
-
-        return { name, cols };
-      })
-      .filter((t): t is { name: string; cols: { name: string; type: string }[] } => t !== null);
-  }, [currentCase.schema]);
+  // Modelo de tabelas/colunas vem do parser compartilhado (domain/schemaModel).
+  const tables = React.useMemo(() => parseSchema(currentCase.schema), [currentCase.schema]);
 
   // Interface para conexões de relacionamento inteligentes
   interface SmartConnection {
@@ -86,8 +66,8 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
         const tabX = tables[i];
         const tabY = tables[j];
         
-        tabX.cols.forEach(colX => {
-          tabY.cols.forEach(colY => {
+        tabX.columns.forEach(colX => {
+          tabY.columns.forEach(colY => {
             // Regra 1: Nomes de coluna idênticos que terminam com _id (ex: cliente_id em ambas)
             if (colX.name === colY.name && colX.name.toLowerCase().endsWith('_id')) {
               list.push({
@@ -297,7 +277,7 @@ export const ERDiagram: React.FC<ERDiagramProps> = ({ currentCase }) => {
 
             {/* Listagem de Colunas com Hover interativo */}
             <div style={{ display: 'flex', flexDirection: 'column', padding: '0.35rem 0.5rem' }}>
-              {table.cols.map((col, cIdx) => {
+              {table.columns.map((col, cIdx) => {
                 const hasRelations = smartConnections.some(c => 
                   (c.tableA === table.name && c.colA === col.name) ||
                   (c.tableB === table.name && c.colB === col.name)

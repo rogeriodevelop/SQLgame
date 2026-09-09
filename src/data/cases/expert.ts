@@ -1,4 +1,4 @@
-import type { Case } from '../../types';
+import type { Case } from '../../domain/case';
 
 // ─── ERP completo da "Hydra Syndicate" ────────────────────────────────────────
 // 15 tabelas densamente populadas para os casos Expert.

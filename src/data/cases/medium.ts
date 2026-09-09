@@ -1,4 +1,4 @@
-import type { Case } from '../../types';
+import type { Case } from '../../domain/case';
 
 export const mediumCases: Case[] = [
   // ─────────────────────────────────────────────────────────────────
