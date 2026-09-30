@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { Header } from './components/Header';
 import { CaseArchive } from './components/CaseArchive';
+import { Credits } from './components/Credits';
 import { TitleScreen } from './components/TitleScreen';
 import { CaseWorkspace } from './components/CaseWorkspace';
 
@@ -99,6 +100,8 @@ export default function App() {
         onNextCase={() => goToCase(progress.currentCaseIndex + 1)}
         onSolved={progress.recordSolved}
       />
+
+      <Credits />
 
       <CaseArchive
         isOpen={isMapOpen}

@@ -49,7 +49,7 @@ function initialSideTab(currentCase: Case): SideTab {
  * zerados sem nenhum efeito de sincronização.
  */
 export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextCase, onNextCase, onSolved }: Props) {
-  const { runQuery, reset: resetDatabase, dbError, loading } = useSqlDatabase(currentCase.schema);
+  const { runQuery, reset: resetDatabase, dbError, loading, restoring } = useSqlDatabase(currentCase.schema);
 
   const tables = useMemo(() => parseSchema(currentCase.schema), [currentCase.schema]);
   const relations = useMemo(() => inferRelations(tables), [tables]);
@@ -65,7 +65,7 @@ export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextC
 
   const restored = useRestoredSession(currentCase.id, alreadySolved);
 
-  const { session, execute, revealHint, accuse, getStartedAt } = useCaseSession({
+  const { session, execute, revealHint, accuse, getStartedAt, markDatabaseRestored } = useCaseSession({
     currentCase,
     tables,
     alreadySolved,
@@ -166,15 +166,18 @@ export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextC
               playSound('click');
               execute(sql);
             }}
+            restoring={restoring}
             onResetDatabase={() => {
-              playSound('click');
+              playSound('paper');
               resetDatabase();
+              markDatabaseRestored();
             }}
           />
         </div>
         <div style={{ flex: '1 1 48%', minHeight: '230px' }}>
           <ReportPanel
             result={session.result}
+            databaseRestored={session.databaseRestored}
             lastSql={session.lastSql}
             reportNumber={lastEntry?.id ?? 0}
             reportAt={lastEntry?.at ?? null}

@@ -1,5 +1,6 @@
 import { Play, FolderOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Credits } from './Credits';
 import { Fingerprint, PunchCard, SpyUnderStreetlamp, TapeReel } from './NoirArt';
 
 type Props = {
@@ -103,6 +104,8 @@ export function TitleScreen({ onStart, onContinue, hasProgress }: Props) {
           )}
         </div>
       </motion.main>
+
+      <Credits style={{ position: 'absolute', left: 0, right: 0, bottom: 'var(--sp-3)' }} />
     </div>
   );
 }

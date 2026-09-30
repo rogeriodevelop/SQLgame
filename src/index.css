@@ -95,7 +95,7 @@ code, pre { font-family: var(--font-mono); }
   grid-template-columns: minmax(300px, 350px) minmax(0, 1fr) minmax(310px, 370px);
   gap: var(--sp-4);
   grid-template-rows: minmax(0, 1fr);
-  height: calc(100vh - 6.25rem);
+  height: calc(100vh - 9.5rem);
   min-height: 560px;
 }
 

@@ -112,6 +112,25 @@ try {
       if (!/Ana Reis/.test(await bodyText())) throw new Error('resultado nao apareceu');
     });
 
+    // Restaurar precisa desfazer o DELETE e avisar na tela, sem a mesa sumir.
+    await step('restaurar banco desfaz DELETE e avisa', async () => {
+      const runSql = async sql => {
+        await page.locator('.cm-content').click();
+        await page.keyboard.press('Control+A');
+        await page.keyboard.type(sql);
+        await page.keyboard.press('Control+Enter');
+        await page.waitForTimeout(700);
+      };
+      await runSql('DELETE FROM agentes');
+      await page.getByRole('button', { name: /restaurar banco/i }).click();
+      await page.waitForTimeout(600);
+      const afterClick = await bodyText();
+      if (!/BANCO RESTAURADO/.test(afterClick)) throw new Error('sem aviso de restauracao');
+      if (/ABRINDO O ARQUIVO/.test(afterClick)) throw new Error('mesa sumiu durante a restauracao');
+      await runSql('SELECT * FROM agentes;');
+      if (!/Ana Reis/.test(await bodyText())) throw new Error('registros nao voltaram');
+    });
+
     // Sair no meio do caso não pode apagar o trabalho nem as penalidades:
     // a acusação sem prova acima já custou uma tentativa, e o F5 não a zera.
     const savedSessions = () =>
@@ -126,7 +145,9 @@ try {
       if (after.wrongAttempts !== 1) throw new Error(`tentativas=${after.wrongAttempts}, esperado 1`);
       if (after.startedAt !== before.startedAt) throw new Error('cronometro reiniciou');
       if (!/SELECT \* FROM agentes/.test(await page.locator('.cm-content').innerText())) throw new Error('consulta do editor perdida');
-      if (!/Di[aá]rio\s*1/.test(await bodyText())) throw new Error('diario de consultas perdido');
+      const entries = before.log.length;
+      if (after.log.length !== entries) throw new Error(`diario salvo com ${after.log.length}, esperado ${entries}`);
+      if (!new RegExp(`Di[aá]rio\\s*${entries}\\b`).test(await bodyText())) throw new Error('diario de consultas perdido na tela');
     });
 
     await step('caso fecha quando ha prova e pontua', async () => {

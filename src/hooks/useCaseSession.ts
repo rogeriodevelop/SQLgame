@@ -23,6 +23,8 @@ export type CaseSession = {
   lastVerdict: VerdictKind | null;
   /** Consulta que produziu o resultado exibido. */
   lastSql: string | null;
+  /** O banco acabou de ser restaurado e nenhuma consulta rodou depois. */
+  databaseRestored: boolean;
   /** Diário de consultas, mais recente primeiro. */
   log: LogEntry[];
 };
@@ -71,6 +73,7 @@ export function useCaseSession({ currentCase, tables, alreadySolved, restored, r
         result,
         queryError: error,
         lastSql: sql,
+        databaseRestored: false,
         proven: previous.proven || resultContainsValue(result, currentCase.solution),
         log: appendLog(previous.log, {
           id: (previous.log[0]?.id ?? 0) + 1,
@@ -85,6 +88,14 @@ export function useCaseSession({ currentCase, tables, alreadySolved, restored, r
     },
     [runQuery, currentCase.solution, tables]
   );
+
+  /**
+   * O resultado na tela veio do banco antigo e pode mostrar registros que já
+   * não existem (ou esconder os que voltaram): some junto com a restauração.
+   */
+  const markDatabaseRestored = useCallback(() => {
+    setSession(previous => ({ ...previous, result: null, queryError: null, databaseRestored: true }));
+  }, []);
 
   const revealHint = useCallback(() => {
     setSession(previous => ({
@@ -149,7 +160,7 @@ export function useCaseSession({ currentCase, tables, alreadySolved, restored, r
     [currentCase, session.proven, session.wrongAttempts, session.usedHint, onSolved]
   );
 
-  return { session, execute, revealHint, accuse, getStartedAt };
+  return { session, execute, revealHint, accuse, getStartedAt, markDatabaseRestored };
 }
 
 function initialSession(alreadySolved: boolean, restored?: SavedSession | null): CaseSession {
@@ -166,6 +177,7 @@ function initialSession(alreadySolved: boolean, restored?: SavedSession | null):
     elapsedSeconds: 0,
     lastVerdict: null,
     lastSql: null,
+    databaseRestored: false,
     log: restored?.log ?? [],
   };
 }

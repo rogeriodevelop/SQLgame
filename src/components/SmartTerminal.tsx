@@ -19,6 +19,7 @@ type Props = {
   onExecute: (sql: string) => void;
   /** Recria o banco do caso, desfazendo DELETE/DROP acidentais. */
   onResetDatabase: () => void;
+  restoring: boolean;
 };
 
 function EditorSkeleton() {
@@ -39,7 +40,7 @@ function statementLabel(statement: string): string {
  * O terminal da delegacia: um monitor de fósforo âmbar onde o jogador
  * escreve SQL. Quando o banco recusa a consulta, o perito explica o porquê.
  */
-export function SmartTerminal({ tables, code, onCodeChange, queryError, onExecute, onResetDatabase }: Props) {
+export function SmartTerminal({ tables, code, onCodeChange, queryError, onExecute, onResetDatabase, restoring }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const completionSchema = useMemo(() => toCompletionSchema([...tables]), [tables]);
@@ -80,10 +81,17 @@ export function SmartTerminal({ tables, code, onCodeChange, queryError, onExecut
         >
           <span style={{ letterSpacing: '0.12em' }}>C:\DELEGACIA\CONSULTAS&gt; SQLITE</span>
           <span style={{ display: 'flex', gap: 'var(--sp-2)' }}>
-            <button type="button" className="btn btn-crt" onClick={onResetDatabase} title="Restaurar o banco do caso ao estado original">
-              <RotateCcw size={12} aria-hidden /> Restaurar banco
+            <button
+              type="button"
+              className="btn btn-crt"
+              onClick={onResetDatabase}
+              disabled={restoring}
+              title="Desfaz DELETE, UPDATE, INSERT e DROP: o banco volta ao estado original do caso. Seu SQL e o diário não mudam."
+            >
+              <RotateCcw size={12} aria-hidden style={restoring ? { animation: 'spin 0.8s linear infinite' } : undefined} />
+              {restoring ? 'Restaurando…' : 'Restaurar banco'}
             </button>
-            <button type="button" className="btn btn-crt-solid" onClick={run} disabled={!selectedQuery}>
+            <button type="button" className="btn btn-crt-solid" onClick={run} disabled={!selectedQuery || restoring}>
               <Play size={12} aria-hidden /> EXECUTAR
             </button>
           </span>

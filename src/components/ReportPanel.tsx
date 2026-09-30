@@ -9,6 +9,8 @@ import { PunchCard, TapeReel } from './NoirArt';
 
 type Props = {
   result: QueryResult | null;
+  /** O banco foi restaurado e ainda não houve consulta depois. */
+  databaseRestored: boolean;
   lastSql: string | null;
   /** Número da consulta no diário, para numerar o relatório e animar a impressão. */
   reportNumber: number;
@@ -50,7 +52,20 @@ export function ReportPanel(props: Props) {
   );
 }
 
-function Report({ result, lastSql, reportNumber, reportAt, pinnedIds, suspects, onPinRow, onToggleSuspect }: Props) {
+function Report({ result, databaseRestored, lastSql, reportNumber, reportAt, pinnedIds, suspects, onPinRow, onToggleSuspect }: Props) {
+  if (!result && databaseRestored) {
+    return (
+      <div className="printout tab-panel print-in" role="tabpanel" style={{ display: 'grid', placeContent: 'center', textAlign: 'center', gap: 'var(--sp-3)' }}>
+        <p role="status" style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>*** BANCO RESTAURADO ***</p>
+        <p style={{ fontFamily: 'var(--font-type)', color: 'var(--ink-soft)', maxWidth: '46ch', lineHeight: 1.6, margin: '0 auto' }}>
+          Todas as tabelas voltaram ao estado original do caso: o que foi apagado ou alterado com DELETE,
+          UPDATE, INSERT ou DROP foi desfeito. Seu SQL no terminal, o diário e o quadro continuam como estavam.
+          Execute a consulta de novo para ver os dados.
+        </p>
+      </div>
+    );
+  }
+
   if (!result) {
     return (
       <div className="printout tab-panel" role="tabpanel" style={{ display: 'grid', placeContent: 'center', textAlign: 'center' }}>

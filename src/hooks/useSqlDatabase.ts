@@ -28,19 +28,26 @@ function messageOf(error: unknown): string {
  * O jogador roda SQL irrestrito, inclusive DELETE e DROP. `reset` recria o
  * banco a partir do schema original para que destruir a evidência por engano
  * não obrigue a recarregar a página.
+ *
+ * `loading` vale só para a primeira montagem. Uma restauração não volta à
+ * tela de carregamento (a mesa sumiria e o memorando seria datilografado de
+ * novo): quem usa acompanha `restoring`.
  */
 export function useSqlDatabase(schema: string) {
   const [db, setDb] = useState<SqlDatabase | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generation, setGeneration] = useState(0);
+  const [builtGeneration, setBuiltGeneration] = useState(-1);
 
   useEffect(() => {
     let cancelled = false;
     let database: SqlDatabase | null = null;
 
     const build = async () => {
-      setLoading(true);
+      // O banco anterior é fechado na limpeza do efeito; sem soltá-lo aqui,
+      // uma consulta nesse intervalo cairia num banco já fechado.
+      setDb(null);
       setDbError(null);
       try {
         const engine = await loadSqlEngine();
@@ -48,6 +55,7 @@ export function useSqlDatabase(schema: string) {
         database = new engine.Database();
         database.run(schema);
         setDb(database);
+        setBuiltGeneration(generation);
       } catch (error) {
         if (!cancelled) setDbError(messageOf(error));
       } finally {
@@ -94,5 +102,5 @@ export function useSqlDatabase(schema: string) {
     [db]
   );
 
-  return { runQuery, reset, dbError, loading };
+  return { runQuery, reset, dbError, loading, restoring: generation > 0 && builtGeneration !== generation };
 }
