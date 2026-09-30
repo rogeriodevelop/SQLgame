@@ -119,8 +119,9 @@ export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextC
 
   return (
     <main className="desk">
-      <section aria-label="Pasta e arquivos do caso" className="desk-scroll">
-        <CaseFolder
+      <section aria-label="Pasta e arquivos do caso">
+        <div className="folder-scroll">
+          <CaseFolder
           currentCase={currentCase}
           caseNumber={caseNumber}
           alreadySolved={alreadySolved}
@@ -131,6 +132,7 @@ export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextC
             revealHint();
           }}
         />
+        </div>
         <RecordsPanel tables={tables} relations={relations} onInsert={insertIntoTerminal} />
       </section>
 
