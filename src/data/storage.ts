@@ -50,4 +50,5 @@ export const STORAGE_KEYS = {
   notes: 'sqlgame_case_notes',
   practicedLessons: 'sqlgame_practiced_lessons',
   muted: 'sqlgame_muted',
+  caseSessions: 'sqlgame_case_sessions',
 } as const;

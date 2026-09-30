@@ -15,6 +15,7 @@ import { TapeReel } from './NoirArt';
 
 import { useCaseSession } from '../hooks/useCaseSession';
 import { useCaseFile } from '../hooks/useCaseFile';
+import { useAutosaveSession, useRestoredSession } from '../hooks/useSavedSession';
 import { useSqlDatabase } from '../hooks/useSqlDatabase';
 import { playSound } from '../utils/sound';
 
@@ -62,16 +63,33 @@ export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextC
     [onSolved]
   );
 
-  const { session, execute, revealHint, accuse } = useCaseSession({
+  const restored = useRestoredSession(currentCase.id, alreadySolved);
+
+  const { session, execute, revealHint, accuse, getStartedAt } = useCaseSession({
     currentCase,
     tables,
     alreadySolved,
+    restored,
     runQuery,
     onSolved: handleSolved,
   });
 
-  const file = useCaseFile(currentCase.id);
-  const [code, setCode] = useState('');
+  const file = useCaseFile(currentCase.id, restored);
+  const [code, setCode] = useState(() => restored?.sql ?? '');
+
+  useAutosaveSession(currentCase.id, {
+    solved: session.solved,
+    getStartedAt,
+    snapshot: {
+      sql: code,
+      log: session.log,
+      evidence: file.evidence,
+      suspects: file.suspects,
+      wrongAttempts: session.wrongAttempts,
+      usedHint: session.usedHint,
+      proven: session.proven,
+    },
+  });
   const [answer, setAnswer] = useState('');
   const [sideTab, setSideTab] = useState<SideTab>(() => initialSideTab(currentCase));
 

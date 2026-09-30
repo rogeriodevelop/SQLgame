@@ -112,6 +112,23 @@ try {
       if (!/Ana Reis/.test(await bodyText())) throw new Error('resultado nao apareceu');
     });
 
+    // Sair no meio do caso não pode apagar o trabalho nem as penalidades:
+    // a acusação sem prova acima já custou uma tentativa, e o F5 não a zera.
+    const savedSessions = () =>
+      page.evaluate(() => Object.values(JSON.parse(localStorage.getItem('sqlgame_case_sessions') || '{}')));
+
+    await step('investigacao sobrevive a recarga (F5)', async () => {
+      const [before] = await savedSessions();
+      if (!before) throw new Error('sessao nao foi salva');
+      await page.reload({ waitUntil: 'load' });
+      await page.waitForTimeout(3000);
+      const [after] = await savedSessions();
+      if (after.wrongAttempts !== 1) throw new Error(`tentativas=${after.wrongAttempts}, esperado 1`);
+      if (after.startedAt !== before.startedAt) throw new Error('cronometro reiniciou');
+      if (!/SELECT \* FROM agentes/.test(await page.locator('.cm-content').innerText())) throw new Error('consulta do editor perdida');
+      if (!/Di[aá]rio\s*1/.test(await bodyText())) throw new Error('diario de consultas perdido');
+    });
+
     await step('caso fecha quando ha prova e pontua', async () => {
       await page.locator('#answer-input').fill('Ana Reis');
       await page.getByRole('button', { name: /emitir mandado/i }).click();
@@ -119,6 +136,12 @@ try {
       const final = await bodyText();
       if (!/Caso resolvido/i.test(final)) throw new Error('caso nao fechou');
       if (!/pts/i.test(final)) throw new Error('pontuacao nao exibida');
+      if (!/1 mandado\(s\) indeferido/.test(final)) throw new Error('penalidade anterior ao F5 sumiu');
+    });
+
+    await step('sessao salva e apagada ao resolver', async () => {
+      await page.waitForTimeout(500);
+      if ((await savedSessions()).length !== 0) throw new Error('sessao continuou salva');
     });
   }
 

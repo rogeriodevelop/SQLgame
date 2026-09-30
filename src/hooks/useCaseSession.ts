@@ -5,6 +5,7 @@ import { scoreCase } from '../domain/scoring';
 import type { CaseRecord } from '../domain/progress';
 import type { TableModel } from '../domain/schemaModel';
 import { appendLog, tablesIn, techniquesIn, type LogEntry } from '../domain/casefile';
+import type { SavedSession } from '../domain/savedSession';
 
 export type CaseSession = {
   result: QueryResult | null;
@@ -31,6 +32,8 @@ type Options = {
   /** Tabelas do caso, para o diário saber quais arquivos cada consulta abriu. */
   tables: readonly TableModel[];
   alreadySolved: boolean;
+  /** Investigação salva deste caso, retomada ao reabrir. */
+  restored?: SavedSession | null;
   runQuery: (sql: string) => { result: QueryResult | null; error: string | null };
   onSolved: (record: CaseRecord) => void;
 };
@@ -42,18 +45,22 @@ type Options = {
  * tentativas, cronômetro) e delega as regras — veredito e pontuação — ao
  * domínio. A interface só consome o estado e dispara as duas ações.
  */
-export function useCaseSession({ currentCase, tables, alreadySolved, runQuery, onSolved }: Options) {
-  const [session, setSession] = useState<CaseSession>(() => initialSession(alreadySolved));
-  // Preenchido no efeito abaixo, que roda na montagem: ler o relógio durante o
-  // render é impuro e daria um instante diferente a cada re-render.
-  const startedAt = useRef<number>(0);
+export function useCaseSession({ currentCase, tables, alreadySolved, restored, runQuery, onSolved }: Options) {
+  const [session, setSession] = useState<CaseSession>(() => initialSession(alreadySolved, restored));
+  // Uma investigação retomada mantém o instante original de abertura: sair e
+  // voltar não reinicia o cronômetro. Caso novo é marcado no efeito abaixo —
+  // ler o relógio durante o render é impuro.
+  const startedAt = useRef<number>(restored?.startedAt ?? 0);
 
   // Só marca o início. Trocar de caso NÃO é tratado aqui: quem consome este
   // hook é remontado via `key={currentCase.id}`, então o estado já nasce
   // zerado. Ressincronizar por efeito causaria renders em cascata.
   useEffect(() => {
-    startedAt.current = Date.now();
+    if (!startedAt.current) startedAt.current = Date.now();
   }, []);
+
+  /** Instante de abertura do caso, para gravar a investigação. */
+  const getStartedAt = useCallback(() => startedAt.current, []);
 
   const execute = useCallback(
     (sql: string) => {
@@ -142,22 +149,23 @@ export function useCaseSession({ currentCase, tables, alreadySolved, runQuery, o
     [currentCase, session.proven, session.wrongAttempts, session.usedHint, onSolved]
   );
 
-  return { session, execute, revealHint, accuse };
+  return { session, execute, revealHint, accuse, getStartedAt };
 }
 
-function initialSession(alreadySolved: boolean): CaseSession {
+function initialSession(alreadySolved: boolean, restored?: SavedSession | null): CaseSession {
   return {
     result: null,
     queryError: null,
     showHint: false,
-    usedHint: false,
-    wrongAttempts: 0,
-    proven: false,
+    // Penalidades já cobradas continuam cobradas.
+    usedHint: restored?.usedHint ?? false,
+    wrongAttempts: restored?.wrongAttempts ?? 0,
+    proven: restored?.proven ?? false,
     solved: alreadySolved,
     earnedScore: null,
     elapsedSeconds: 0,
     lastVerdict: null,
     lastSql: null,
-    log: [],
+    log: restored?.log ?? [],
   };
 }
