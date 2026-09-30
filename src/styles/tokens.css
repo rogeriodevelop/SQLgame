@@ -1,64 +1,73 @@
 /**
- * Tokens de design — direção cyberpunk futurista.
+ * Tokens de design — direção noir: a mesa de um detetive à noite.
  *
- * Três decisões deliberadas em relação à versão anterior:
- *
- * 1. Paleta ciano/magenta em vez de azul/âmbar. Azul + âmbar sobre cinza é
- *    vocabulário de dashboard corporativo; ciano e magenta sobre preto quase
- *    absoluto é o par canônico de neon.
- * 2. Cantos praticamente retos (2px) no lugar de 16px. Interface cyberpunk é
- *    angular e chanfrada — bordas arredondadas leem como app de produtividade.
- * 3. Chakra Petch nos títulos e rótulos. É uma display condensada e técnica;
- *    a Outfit fica só no texto corrido, onde legibilidade importa mais que
- *    caráter.
+ * O ambiente é escuro (madeira, luz de luminária), mas o conteúdo mora em
+ * objetos claros: papel envelhecido, pasta de manila, fichas, jornal. Texto
+ * longo fica sempre em tinta escura sobre papel, que é o par mais legível;
+ * o escuro serve de moldura. O único objeto luminoso é o monitor de fósforo
+ * âmbar, onde o jogador escreve SQL.
  */
 
 :root {
-  /* Superfícies — preto azulado, quase sem luz própria */
-  --bg-void: #04060b;
-  --bg-dark: #070b13;
-  --bg-card: #0a101b;
-  --bg-elevated: #0f1727;
-  --bg-sunken: rgba(0, 0, 0, 0.35);
-  --glass-bg: rgba(10, 16, 27, 0.72);
+  /* Ambiente */
+  --night: #0c0a08;
+  --wood-dark: #1a120c;
+  --wood: #2a1c12;
+  --wood-light: #3d2a1b;
 
-  /* Texto */
-  --text-main: #e8f4f8;
-  --text-muted: #9fb3c8;
-  --text-faint: #6b8299;
+  /* Papel */
+  --paper: #f2e9d6;
+  --paper-2: #e8dcc0;
+  --paper-edge: #cbb993;
+  --manila: #d9b979;
+  --manila-dark: #b48f4c;
+  --printout: #f5f3ea;
+  --printout-bar: #dcebd8;
+  --cork: #9c7148;
 
-  /* Neon — o par que define a identidade */
-  --neon-cyan: #22d3ee;
-  --neon-magenta: #ff3d9a;
-  --neon-lime: #a3e635;
+  /* Tinta sobre papel — contraste mínimo 4.5:1 sobre --paper */
+  --ink: #211b15;
+  --ink-soft: #463b2f;
+  --ink-faint: #665947;
 
-  --accent-primary: var(--neon-cyan);
-  --accent-secondary: var(--neon-magenta);
-  --accent-warn: #fbbf24;
-  --success: #2dd4bf;
-  --error: #ff4d6d;
+  /* Texto sobre o escuro */
+  --on-dark: #efe5cf;
+  --on-dark-muted: #b8a88b;
+  --on-dark-faint: #8c7d64;
 
-  /* Dificuldades, deslocadas para o registro neon */
-  --tutorial-color: #38bdf8;
-  --easy-color: #2dd4bf;
-  --medium-color: #fbbf24;
-  --hard-color: #ff4d6d;
-  --expert-color: #c084fc;
+  /* Acentos */
+  --red: #a3201c;
+  --red-bright: #c53a2c;
+  --brass: #c9a35a;
+  --brass-light: #e3c486;
+  --brass-dark: #7d5f2a;
+  --blue-ink: #24477a;
+  --green-ink: #2e6a3c;
 
-  /* Bordas: finas e frias, nunca cinza neutro */
-  --border-color: rgba(34, 211, 238, 0.14);
-  --border-strong: rgba(34, 211, 238, 0.35);
+  /* Monitor de fósforo âmbar */
+  --crt-bg: #140d05;
+  --amber: #ffb648;
+  --amber-soft: #e0a453;
+  --amber-dim: #a57739;
+  --amber-glow: 0 0 6px rgba(255, 170, 60, 0.45);
 
-  /* Brilhos reutilizáveis */
-  --glow-cyan: 0 0 12px rgba(34, 211, 238, 0.35);
-  --glow-magenta: 0 0 12px rgba(255, 61, 154, 0.35);
+  --success: var(--green-ink);
+  --error: var(--red);
 
-  /* Escala tipográfica — piso em 12px, mantido do passe de acessibilidade */
+  /* Dificuldades, como tintas de carimbo */
+  --tutorial-color: #24477a;
+  --easy-color: #2e6a3c;
+  --medium-color: #8a5a0c;
+  --hard-color: #a3201c;
+  --expert-color: #5a2d82;
+
+  /* Escala tipográfica — piso em 12px */
   --fs-xs: 0.75rem;
   --fs-sm: 0.8125rem;
   --fs-md: 0.9375rem;
   --fs-lg: 1.125rem;
   --fs-xl: 1.5rem;
+  --fs-2xl: 2.25rem;
 
   --sp-1: 0.25rem;
   --sp-2: 0.5rem;
@@ -67,24 +76,27 @@
   --sp-5: 1.5rem;
   --sp-6: 2rem;
 
-  /* Angular, não arredondado */
   --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 3px;
+  --radius-md: 4px;
+  --radius-lg: 10px;
 
-  --font-display: 'Chakra Petch', 'Outfit', system-ui, sans-serif;
-  --font-ui: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --shadow-paper: 0 1px 1px rgba(0, 0, 0, 0.25), 0 8px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lifted: 0 2px 2px rgba(0, 0, 0, 0.3), 0 14px 30px rgba(0, 0, 0, 0.55);
 
-  --focus-ring: 2px solid var(--neon-cyan);
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-type: 'Special Elite', 'Courier New', monospace;
+  --font-ui: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
 
-  /* Chanfro de canto usado nos painéis de HUD */
-  --cut: 10px;
+  --focus-ring: 2px solid var(--brass-light);
+
+  /* Granulação de papel, gerada por SVG — sem arquivo de imagem. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .25 0 0 0 0 .14 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /**
- * Respeita quem pediu menos movimento no sistema operacional. O flicker de
- * CRT animava a opacidade da aplicação inteira 6x por segundo, sem parar.
+ * Respeita quem pediu menos movimento no sistema operacional: sem chuva,
+ * sem máquina de escrever, sem carimbos voando.
  */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -96,13 +108,10 @@
     scroll-behavior: auto !important;
   }
 
-  .crt-flicker { animation: none !important; }
-  .crt-container::before { display: none !important; }
-  .glitch::before,
-  .glitch::after { display: none !important; }
+  .rain { display: none !important; }
 }
 
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }

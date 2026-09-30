@@ -1,23 +1,27 @@
-import { useCallback } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { AlertTriangle, Pin, BookOpen, NotebookPen } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
-import { BriefingCard } from './BriefingCard';
+import { CaseFolder } from './CaseFolder';
+import { RecordsPanel } from './RecordsPanel';
 import { SmartTerminal } from './SmartTerminal';
-import { ResultsTable } from './ResultsTable';
-import { ERDiagram } from './ERDiagram';
-import { SchemaViewer } from './SchemaViewer';
-import { RpgCharacterSheet } from './RpgCharacterSheet';
-import { AccusationPanel } from './AccusationPanel';
+import { ReportPanel } from './ReportPanel';
+import { EvidenceBoard } from './EvidenceBoard';
+import { ManualPanel } from './ManualPanel';
+import { CaseDiary } from './CaseDiary';
+import { WarrantPanel } from './WarrantPanel';
 import { CaseSolvedCard } from './CaseSolvedCard';
 
 import { useCaseSession } from '../hooks/useCaseSession';
+import { useCaseFile } from '../hooks/useCaseFile';
 import { useSqlDatabase } from '../hooks/useSqlDatabase';
 import { playSound } from '../utils/sound';
 
 import type { Case } from '../domain/case';
-import type { CaseRecord, Rank } from '../domain/progress';
+import type { CaseRecord } from '../domain/progress';
+import { inferRelations, parseSchema } from '../domain/schemaModel';
+import { leadsFor } from '../domain/casefile';
+import { lessonsFor, sampleKey, sampleTargets, type SampleValues } from '../domain/tutor';
 
 type Props = {
   currentCase: Case;
@@ -26,63 +30,84 @@ type Props = {
   hasNextCase: boolean;
   onNextCase: () => void;
   onSolved: (record: CaseRecord) => void;
-  /** Dados de progressão exibidos na ficha do jogador. */
-  totalScore: number;
-  totalSolved: number;
-  casesCount: number;
-  rank: Rank;
-  upcomingRank: { rank: Rank; missing: number } | null;
 };
 
+type SideTab = 'board' | 'manual' | 'diary';
+
+/** Primeira abertura do jogo: o Manual já vem aberto no treinamento. */
+function initialSideTab(currentCase: Case): SideTab {
+  return currentCase.difficulty === 'Tutorial' ? 'manual' : 'board';
+}
+
 /**
- * O tabuleiro de um caso.
+ * A mesa do detetive para um caso.
  *
- * É montado com `key={currentCase.id}`: trocar de caso descarta esta árvore e
- * cria outra, então banco, consulta, tentativas e cronômetro nascem zerados
- * sem nenhum efeito de sincronização.
+ * É montada com `key={currentCase.id}`: trocar de caso descarta esta árvore e
+ * cria outra, então banco, consulta, tentativas, quadro e cronômetro nascem
+ * zerados sem nenhum efeito de sincronização.
  */
-export function CaseWorkspace({
-  currentCase,
-  caseNumber,
-  alreadySolved,
-  hasNextCase,
-  onNextCase,
-  onSolved,
-  totalScore,
-  totalSolved,
-  casesCount,
-  rank,
-  upcomingRank,
-}: Props) {
+export function CaseWorkspace({ currentCase, caseNumber, alreadySolved, hasNextCase, onNextCase, onSolved }: Props) {
   const { runQuery, reset: resetDatabase, dbError, loading } = useSqlDatabase(currentCase.schema);
+
+  const tables = useMemo(() => parseSchema(currentCase.schema), [currentCase.schema]);
+  const relations = useMemo(() => inferRelations(tables), [tables]);
 
   const handleSolved = useCallback(
     (record: CaseRecord) => {
       onSolved(record);
-      playSound('success');
-      confetti({
-        particleCount: 160,
-        spread: 80,
-        origin: { y: 0.65 },
-        // canvas-confetti desenha no canvas e não resolve CSS variables:
-        // as cores neon precisam vir como hex literal.
-        colors: ['#22d3ee', '#ff3d9a', '#a3e635', '#c084fc'],
-      });
+      playSound('stamp');
+      setTimeout(() => playSound('success'), 250);
     },
     [onSolved]
   );
 
   const { session, execute, revealHint, accuse } = useCaseSession({
     currentCase,
+    tables,
     alreadySolved,
     runQuery,
     onSolved: handleSolved,
   });
 
+  const file = useCaseFile(currentCase.id);
+  const [code, setCode] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [sideTab, setSideTab] = useState<SideTab>(() => initialSideTab(currentCase));
+
+  // Valores reais do banco para os exemplos das lições devolverem linhas.
+  // Leitura pura (SELECT), fora do diário: não conta como consulta do jogador.
+  const samples = useMemo<SampleValues>(() => {
+    if (loading) return {};
+    const values: SampleValues = {};
+    for (const { table, column } of sampleTargets(tables)) {
+      const { result } = runQuery(`SELECT ${column} FROM ${table} WHERE ${column} IS NOT NULL LIMIT 1`);
+      const cell = result?.values[0]?.[0];
+      if (cell !== undefined && cell !== null) values[sampleKey(table, column)] = String(cell);
+    }
+    return values;
+  }, [loading, runQuery, tables]);
+
+  const lessons = useMemo(
+    () => lessonsFor(tables, relations, currentCase.difficulty, samples),
+    [tables, relations, currentCase.difficulty, samples]
+  );
+
+  const leads = useMemo(
+    () => leadsFor(tables, session.log, file.evidence.length, file.suspects.length),
+    [tables, session.log, file.evidence.length, file.suspects.length]
+  );
+
+  const pinnedIds = useMemo(() => new Set(file.evidence.map(e => e.id)), [file.evidence]);
+
+  const insertIntoTerminal = useCallback((sql: string) => {
+    playSound('paper');
+    setCode(sql);
+  }, []);
+
   const handleAccuse = useCallback(
-    (answer: string) => {
-      const verdict = accuse(answer);
-      if (verdict !== 'solved') playSound('error');
+    (value: string) => {
+      const verdict = accuse(value);
+      if (verdict !== 'solved') playSound('stamp');
       return verdict;
     },
     [accuse]
@@ -90,43 +115,31 @@ export function CaseWorkspace({
 
   if (loading || dbError) return <BootScreen error={dbError} />;
 
-  return (
-    <main className="grid-layout" style={{ flex: 1, minHeight: 0 }}>
-      <section
-        aria-label="Investigação"
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', minHeight: 0, overflowY: 'auto' }}
-      >
-        <RpgCharacterSheet
-          totalScore={totalScore}
-          totalSolved={totalSolved}
-          casesCount={casesCount}
-          rank={rank}
-          upcomingRank={upcomingRank}
-        />
+  const lastEntry = session.log[0];
 
-        <BriefingCard
+  return (
+    <main className="desk">
+      <section aria-label="Pasta e arquivos do caso" className="desk-scroll">
+        <CaseFolder
           currentCase={currentCase}
           caseNumber={caseNumber}
+          alreadySolved={alreadySolved}
           showHint={session.showHint}
           usedHint={session.usedHint}
           onToggleHint={() => {
-            playSound('click');
+            playSound('paper');
             revealHint();
           }}
         />
-
-        <div style={{ flex: 1, minHeight: '220px' }}>
-          <SchemaViewer currentCase={currentCase} />
-        </div>
+        <RecordsPanel tables={tables} relations={relations} onInsert={insertIntoTerminal} />
       </section>
 
-      <section
-        aria-label="Terminal e resultados"
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', minHeight: 0, minWidth: 0 }}
-      >
-        <div style={{ flex: '1 1 55%', minHeight: '240px' }}>
+      <section aria-label="Terminal e relatório">
+        <div style={{ flex: '1 1 52%', minHeight: '250px' }}>
           <SmartTerminal
-            schema={currentCase.schema}
+            tables={tables}
+            code={code}
+            onCodeChange={setCode}
             queryError={session.queryError}
             onExecute={sql => {
               playSound('click');
@@ -138,18 +151,50 @@ export function CaseWorkspace({
             }}
           />
         </div>
-
-        <div style={{ flex: '1 1 45%', minHeight: '200px', minWidth: 0 }}>
-          <ResultsTable result={session.result} />
+        <div style={{ flex: '1 1 48%', minHeight: '230px' }}>
+          <ReportPanel
+            result={session.result}
+            lastSql={session.lastSql}
+            reportNumber={lastEntry?.id ?? 0}
+            reportAt={lastEntry?.at ?? null}
+            pinnedIds={pinnedIds}
+            suspects={file.suspects}
+            onPinRow={(columns, row) => {
+              playSound('pin');
+              file.pinRow(columns, row, session.lastSql ?? '');
+            }}
+            onToggleSuspect={name => {
+              playSound('pin');
+              file.toggleSuspect(name);
+            }}
+          />
         </div>
       </section>
 
-      <aside
-        aria-label="Diagrama e conclusão"
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', minHeight: 0 }}
-      >
-        <div style={{ flex: 1, minHeight: '220px' }}>
-          <ERDiagram currentCase={currentCase} />
+      <aside aria-label="Quadro, manual e conclusão">
+        <div style={{ flex: 1, minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
+          <div className="tabs" role="tablist" aria-label="Ferramentas do detetive">
+            <SideTabButton id="board" current={sideTab} onSelect={setSideTab} icon={<Pin size={12} aria-hidden />} label="Quadro" count={file.evidence.length + file.suspects.length} />
+            <SideTabButton id="manual" current={sideTab} onSelect={setSideTab} icon={<BookOpen size={12} aria-hidden />} label="Manual" />
+            <SideTabButton id="diary" current={sideTab} onSelect={setSideTab} icon={<NotebookPen size={12} aria-hidden />} label="Diário" count={session.log.length} />
+          </div>
+
+          {sideTab === 'board' && (
+            <EvidenceBoard
+              evidence={file.evidence}
+              suspects={file.suspects}
+              onUnpin={file.unpin}
+              onRemoveSuspect={file.toggleSuspect}
+              onChooseSuspect={name => {
+                playSound('paper');
+                setAnswer(name);
+              }}
+            />
+          )}
+          {sideTab === 'manual' && <ManualPanel lessons={lessons} log={session.log} onInsert={insertIntoTerminal} />}
+          {sideTab === 'diary' && (
+            <CaseDiary leads={leads} log={session.log} notes={file.notes} onNotesChange={file.setNotes} onInsert={insertIntoTerminal} />
+          )}
         </div>
 
         <AnimatePresence mode="wait">
@@ -162,15 +207,55 @@ export function CaseWorkspace({
               wrongAttempts={session.wrongAttempts}
               usedHint={session.usedHint}
               elapsedSeconds={session.elapsedSeconds}
+              queryCount={session.log.length}
               hasNextCase={hasNextCase}
               onNextCase={onNextCase}
             />
           ) : (
-            <AccusationPanel key="form" onAccuse={handleAccuse} wrongAttempts={session.wrongAttempts} />
+            <WarrantPanel
+              key="warrant"
+              answer={answer}
+              onAnswerChange={setAnswer}
+              suspects={file.suspects}
+              onAccuse={handleAccuse}
+              wrongAttempts={session.wrongAttempts}
+            />
           )}
         </AnimatePresence>
       </aside>
     </main>
+  );
+}
+
+function SideTabButton({
+  id,
+  current,
+  onSelect,
+  icon,
+  label,
+  count,
+}: {
+  id: SideTab;
+  current: SideTab;
+  onSelect: (tab: SideTab) => void;
+  icon: ReactNode;
+  label: string;
+  count?: number;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      className="tab"
+      aria-selected={current === id}
+      onClick={() => {
+        playSound('paper');
+        onSelect(id);
+      }}
+    >
+      {icon} {label}
+      {count ? <span className="tab-badge">{count}</span> : null}
+    </button>
   );
 }
 
@@ -187,47 +272,21 @@ function BootScreen({ error }: { error: string | null }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: error ? 'var(--error)' : 'var(--accent-primary)',
         gap: 'var(--sp-4)',
         padding: 'var(--sp-4)',
         textAlign: 'center',
       }}
     >
       {error ? (
-        <>
-          <AlertTriangle size={36} aria-hidden />
-          <p style={{ maxWidth: '46ch', fontSize: 'var(--fs-sm)', lineHeight: 1.6 }}>
-            Falha ao montar o banco do caso:
-            <br />
-            <code
-              style={{
-                background: 'rgba(0,0,0,0.35)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                display: 'inline-block',
-                marginTop: 'var(--sp-2)',
-              }}
-            >
-              {error}
-            </code>
-          </p>
-        </>
+        <div className="paper" style={{ padding: 'var(--sp-5)', maxWidth: '52ch' }}>
+          <AlertTriangle size={30} aria-hidden style={{ color: 'var(--red)' }} />
+          <p style={{ margin: 'var(--sp-2) 0', fontFamily: 'var(--font-type)' }}>Falha ao abrir o arquivo do caso:</p>
+          <code style={{ fontSize: 'var(--fs-sm)' }}>{error}</code>
+        </div>
       ) : (
         <>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              border: '3px solid rgba(34, 211, 238,0.15)',
-              borderTopColor: 'var(--easy-color)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-            }}
-          />
-          <p style={{ letterSpacing: '1.5px', fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--easy-color)' }}>
-            CONECTANDO À CENTRAL…
-          </p>
-          <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
+          <div style={{ width: '38px', height: '38px', border: '3px solid rgba(201,163,90,0.2)', borderTopColor: 'var(--brass)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <p style={{ fontFamily: 'var(--font-type)', letterSpacing: '0.12em', color: 'var(--on-dark-muted)' }}>ABRINDO O ARQUIVO DO CASO…</p>
         </>
       )}
     </div>

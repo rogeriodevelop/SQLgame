@@ -3,6 +3,8 @@ import type { Case, QueryResult } from '../domain/case';
 import { judgeAccusation, resultContainsValue, type VerdictKind } from '../domain/investigation';
 import { scoreCase } from '../domain/scoring';
 import type { CaseRecord } from '../domain/progress';
+import type { TableModel } from '../domain/schemaModel';
+import { appendLog, tablesIn, techniquesIn, type LogEntry } from '../domain/casefile';
 
 export type CaseSession = {
   result: QueryResult | null;
@@ -18,10 +20,16 @@ export type CaseSession = {
   /** Segundos gastos até fechar o caso; 0 enquanto aberto. */
   elapsedSeconds: number;
   lastVerdict: VerdictKind | null;
+  /** Consulta que produziu o resultado exibido. */
+  lastSql: string | null;
+  /** Diário de consultas, mais recente primeiro. */
+  log: LogEntry[];
 };
 
 type Options = {
   currentCase: Case;
+  /** Tabelas do caso, para o diário saber quais arquivos cada consulta abriu. */
+  tables: readonly TableModel[];
   alreadySolved: boolean;
   runQuery: (sql: string) => { result: QueryResult | null; error: string | null };
   onSolved: (record: CaseRecord) => void;
@@ -34,7 +42,7 @@ type Options = {
  * tentativas, cronômetro) e delega as regras — veredito e pontuação — ao
  * domínio. A interface só consome o estado e dispara as duas ações.
  */
-export function useCaseSession({ currentCase, alreadySolved, runQuery, onSolved }: Options) {
+export function useCaseSession({ currentCase, tables, alreadySolved, runQuery, onSolved }: Options) {
   const [session, setSession] = useState<CaseSession>(() => initialSession(alreadySolved));
   // Preenchido no efeito abaixo, que roda na montagem: ler o relógio durante o
   // render é impuro e daria um instante diferente a cada re-render.
@@ -50,14 +58,25 @@ export function useCaseSession({ currentCase, alreadySolved, runQuery, onSolved 
   const execute = useCallback(
     (sql: string) => {
       const { result, error } = runQuery(sql);
+      const at = Date.now();
       setSession(previous => ({
         ...previous,
         result,
         queryError: error,
+        lastSql: sql,
         proven: previous.proven || resultContainsValue(result, currentCase.solution),
+        log: appendLog(previous.log, {
+          id: (previous.log[0]?.id ?? 0) + 1,
+          sql,
+          rowCount: result ? result.values.length : null,
+          error,
+          at,
+          techniques: techniquesIn(sql),
+          tables: tablesIn(sql, tables),
+        }),
       }));
     },
-    [runQuery, currentCase.solution]
+    [runQuery, currentCase.solution, tables]
   );
 
   const revealHint = useCallback(() => {
@@ -138,5 +157,7 @@ function initialSession(alreadySolved: boolean): CaseSession {
     earnedScore: null,
     elapsedSeconds: 0,
     lastVerdict: null,
+    lastSql: null,
+    log: [],
   };
 }

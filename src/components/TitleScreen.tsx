@@ -1,4 +1,4 @@
-import { Database, Play, Terminal, Table2, GitBranch } from 'lucide-react';
+import { Play, FolderOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 type Props = {
@@ -10,145 +10,85 @@ type Props = {
 
 const STEPS = [
   {
-    icon: <Table2 size={18} aria-hidden />,
-    title: 'Leia o banco',
-    text: 'Cada caso vem com um banco de dados próprio. O painel de esquema mostra tabelas e colunas.',
+    title: 'Abra a pasta',
+    text: 'Cada caso traz um memorando da delegada e um banco de dados próprio. As fichas mostram as tabelas e colunas.',
   },
   {
-    icon: <Terminal size={18} aria-hidden />,
-    title: 'Consulte com SQL',
-    text: 'Escreva SELECT no terminal. Ctrl+Enter executa, Ctrl+Espaço completa nomes de tabela e coluna.',
+    title: 'Interrogue os dados',
+    text: 'Escreva SQL no terminal e execute com Ctrl+Enter. Não sabe SQL? O Manual ensina passo a passo, com exemplos do próprio caso.',
   },
   {
-    icon: <GitBranch size={18} aria-hidden />,
-    title: 'Prove e acuse',
-    text: 'A acusação só é aceita se alguma consulta sua tiver revelado o responsável. Chute não fecha caso.',
+    title: 'Monte o quadro',
+    text: 'Fixe linhas do relatório como prova, marque suspeitos e anote suas conclusões no diário.',
+  },
+  {
+    title: 'Emita o mandado',
+    text: 'O juiz só aceita acusação que alguma consulta sua tenha revelado. Chute não fecha caso.',
   },
 ];
 
 /**
- * Porta de entrada do jogo.
- *
- * Antes a aplicação abria direto no painel de três colunas, sem contexto nem
- * explicação — o pior primeiro minuto possível para quem nunca escreveu SQL.
+ * Porta de entrada: uma sala escura em noite de chuva, a luminária acesa e
+ * as instruções do jogo em fichas sobre a mesa.
  */
 export function TitleScreen({ onStart, onContinue, hasProgress }: Props) {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 'var(--sp-5)',
-      }}
-    >
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--sp-5) var(--sp-4)', position: 'relative', overflow: 'hidden' }}>
+      <div className="rain" aria-hidden />
+
       <motion.main
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="glass-morphism"
-        style={{
-          width: '100%',
-          maxWidth: '680px',
-          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
-          border: '1px solid rgba(34, 211, 238, 0.25)',
-        }}
+        transition={{ duration: 0.6 }}
+        style={{ width: '100%', maxWidth: '820px', position: 'relative', display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-2)' }}>
-          <Database size={26} style={{ color: 'var(--accent-primary)' }} aria-hidden />
+        <header style={{ textAlign: 'center' }}>
+          <p className="type-label on-dark" style={{ letterSpacing: '0.3em' }}>Delegacia de Dados apresenta</p>
           <h1
-            className="glitch"
-            data-text="GAME SQL"
-            style={{ fontSize: 'clamp(1.75rem, 6vw, 2.6rem)', letterSpacing: '5px', margin: 0 }}
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 900,
+              fontSize: 'clamp(3rem, 11vw, 6.5rem)',
+              lineHeight: 0.95,
+              color: 'var(--on-dark)',
+              textShadow: '0 4px 24px rgba(0,0,0,0.8), 0 0 40px rgba(255,196,120,0.15)',
+              margin: '8px 0',
+            }}
           >
-            GAME SQL
+            GAME <span style={{ color: 'var(--brass)', fontStyle: 'italic' }}>SQL</span>
           </h1>
-        </div>
+          <p style={{ fontFamily: 'var(--font-type)', fontSize: 'clamp(1rem, 2.3vw, 1.2rem)', color: 'var(--on-dark-muted)', maxWidth: '54ch', margin: '0 auto', lineHeight: 1.6 }}>
+            A cidade dorme. Os crimes, não. Todo criminoso deixa rastro num banco de dados — e você é o detetive
+            que sabe perguntar. Começa do zero: não é preciso saber SQL.
+          </p>
+        </header>
 
-        <p
-          style={{
-            color: 'var(--text-muted)',
-            fontSize: 'var(--fs-md)',
-            lineHeight: 1.6,
-            margin: '0 0 var(--sp-5)',
-            maxWidth: '52ch',
-          }}
-        >
-          Uma organização criminosa deixou rastros nos bancos de dados que controla.
-          Você é o analista da Central: interrogue os dados com SQL e feche os casos.
-          Começa do zero — não é preciso saber SQL antes de entrar.
-        </p>
-
-        <ol
-          style={{
-            listStyle: 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--sp-3)',
-            margin: '0 0 var(--sp-5)',
-            padding: 0,
-          }}
-        >
+        <ol style={{ listStyle: 'none', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 'var(--sp-4)' }}>
           {STEPS.map((step, index) => (
-            <li
+            <motion.li
               key={step.title}
-              style={{
-                display: 'flex',
-                gap: 'var(--sp-3)',
-                alignItems: 'flex-start',
-                background: 'var(--bg-sunken)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                padding: 'var(--sp-3)',
-              }}
+              initial={{ opacity: 0, y: 20, rotate: 0 }}
+              animate={{ opacity: 1, y: 0, rotate: [-1.5, 1, -0.6, 1.4][index] }}
+              transition={{ delay: 0.25 + index * 0.12 }}
+              className="index-card"
+              style={{ padding: '3px 12px 12px' }}
             >
-              <span
-                aria-hidden
-                style={{
-                  color: 'var(--accent-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--sp-1)',
-                  flexShrink: 0,
-                }}
-              >
-                <strong style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' }}>
-                  0{index + 1}
-                </strong>
-                {step.icon}
-              </span>
-              <div>
-                <strong style={{ display: 'block', fontSize: 'var(--fs-sm)', marginBottom: '2px' }}>
-                  {step.title}
-                </strong>
-                <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', lineHeight: 1.5 }}>
-                  {step.text}
-                </span>
-              </div>
-            </li>
+              <p style={{ fontFamily: 'var(--font-type)', lineHeight: '24px', fontSize: 'var(--fs-sm)' }}>
+                {String(index + 1).padStart(2, '0')} · <strong>{step.title}</strong>
+              </p>
+              <p style={{ fontSize: 'var(--fs-sm)', lineHeight: '22px', marginTop: '7px' }}>{step.text}</p>
+            </motion.li>
           ))}
         </ol>
 
-        <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={onStart}
-            style={{ flex: '1 1 220px', justifyContent: 'center', fontSize: 'var(--fs-md)', padding: 'var(--sp-3)' }}
-          >
+        <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button type="button" className="btn btn-brass" onClick={onStart} style={{ padding: '0.8rem 1.6rem', fontSize: 'var(--fs-md)' }}>
             <Play size={16} aria-hidden />
             {hasProgress ? 'Recomeçar do treinamento' : 'Começar pelo treinamento'}
           </button>
-
           {hasProgress && onContinue && (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={onContinue}
-              style={{ flex: '1 1 180px', justifyContent: 'center', fontSize: 'var(--fs-md)', padding: 'var(--sp-3)' }}
-            >
-              Continuar de onde parei
+            <button type="button" className="btn btn-ghost" onClick={onContinue} style={{ padding: '0.8rem 1.6rem', fontSize: 'var(--fs-md)' }}>
+              <FolderOpen size={16} aria-hidden /> Continuar de onde parei
             </button>
           )}
         </div>

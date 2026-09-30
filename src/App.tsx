@@ -1,14 +1,14 @@
 import { useCallback, useState } from 'react';
 
 import { Header } from './components/Header';
-import { SkillTreeMap } from './components/SkillTreeMap';
+import { CaseArchive } from './components/CaseArchive';
 import { TitleScreen } from './components/TitleScreen';
 import { CaseWorkspace } from './components/CaseWorkspace';
 
 import { useProgress } from './hooks/useProgress';
 import { caseAt, caseCount } from './data/caseRepository';
 import { browserStore, STORAGE_KEYS } from './data/storage';
-import { playSound } from './utils/sound';
+import { playSound, setMuted } from './utils/sound';
 
 /**
  * Casca da aplicação: decide qual tela mostrar e liga a progressão ao
@@ -20,6 +20,20 @@ export default function App() {
     () => !browserStore.read<boolean>(STORAGE_KEYS.onboardingSeen, false)
   );
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [muted, setMutedState] = useState(() => {
+    const value = browserStore.read<boolean>(STORAGE_KEYS.muted, false);
+    setMuted(value);
+    return value;
+  });
+
+  const toggleMute = useCallback(() => {
+    setMutedState(previous => {
+      const next = !previous;
+      setMuted(next);
+      browserStore.write(STORAGE_KEYS.muted, next);
+      return next;
+    });
+  }, []);
 
   // O índice salvo pode vir de uma versão com outra quantidade de casos;
   // cair no primeiro é melhor que renderizar undefined.
@@ -54,17 +68,15 @@ export default function App() {
   }
 
   return (
-    <div
-      className="container crt-container crt-flicker"
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
-    >
+    <div className="app-shell">
       <Header
         rank={progress.rank}
         upcomingRank={progress.upcomingRank}
         totalScore={progress.totalScore}
         totalSolved={progress.totalSolved}
         casesCount={progress.casesCount}
-        progressPercentage={progress.progressPercentage}
+        muted={muted}
+        onToggleMute={toggleMute}
         onOpenMap={() => {
           playSound('click');
           setIsMapOpen(true);
@@ -86,14 +98,9 @@ export default function App() {
         hasNextCase={progress.currentCaseIndex < caseCount() - 1}
         onNextCase={() => goToCase(progress.currentCaseIndex + 1)}
         onSolved={progress.recordSolved}
-        totalScore={progress.totalScore}
-        totalSolved={progress.totalSolved}
-        casesCount={progress.casesCount}
-        rank={progress.rank}
-        upcomingRank={progress.upcomingRank}
       />
 
-      <SkillTreeMap
+      <CaseArchive
         isOpen={isMapOpen}
         onClose={() => {
           playSound('click');

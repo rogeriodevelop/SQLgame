@@ -4,7 +4,6 @@ import { EditorView, keymap, lineNumbers, highlightActiveLine, placeholder } fro
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { autocompletion, completionKeymap, closeBrackets } from '@codemirror/autocomplete';
 import { sql, SQLite } from '@codemirror/lang-sql';
-import { oneDark } from '@codemirror/theme-one-dark';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 
@@ -60,45 +59,46 @@ export function SqlEditor({ value, onChange, onRun, completionSchema }: Props) {
           ...defaultKeymap,
           indentWithTab,
         ]),
-        oneDark,
-        // Sobrepõe o oneDark (roxo/cinza) para casar com a paleta neon do jogo.
+        // Fósforo âmbar do monitor da delegacia.
         EditorView.theme(
           {
-            '&': { backgroundColor: 'transparent', color: '#dbf4fb' },
+            '&': { backgroundColor: 'transparent', color: '#ffc46b' },
+            '.cm-content': { caretColor: '#ffb648', textShadow: '0 0 5px rgba(255,170,60,0.35)' },
             '.cm-gutters': {
-              backgroundColor: 'rgba(0,0,0,0.25)',
-              color: '#456073',
+              backgroundColor: 'transparent',
+              color: '#7a5a2c',
               border: 'none',
-              borderRight: '1px solid rgba(34,211,238,0.14)',
+              borderRight: '1px dashed rgba(255,182,72,0.22)',
             },
-            '.cm-activeLine': { backgroundColor: 'rgba(34,211,238,0.05)' },
-            '.cm-activeLineGutter': { backgroundColor: 'rgba(34,211,238,0.08)', color: '#22d3ee' },
-            '.cm-cursor': { borderLeftColor: '#22d3ee', borderLeftWidth: '2px' },
-            '.cm-selectionBackground, ::selection': { backgroundColor: 'rgba(34,211,238,0.22) !important' },
+            '.cm-activeLine': { backgroundColor: 'rgba(255,182,72,0.06)' },
+            '.cm-activeLineGutter': { backgroundColor: 'rgba(255,182,72,0.1)', color: '#ffb648' },
+            '.cm-cursor': { borderLeftColor: '#ffb648', borderLeftWidth: '8px', opacity: 0.7 },
+            '.cm-selectionBackground, ::selection': { backgroundColor: 'rgba(255,182,72,0.25) !important' },
+            '.cm-placeholder': { color: '#9a7440' },
             '.cm-tooltip-autocomplete': {
-              backgroundColor: '#0a101b',
-              border: '1px solid rgba(34,211,238,0.35)',
+              backgroundColor: '#1c1208',
+              border: '1px solid rgba(255,182,72,0.5)',
+              color: '#ffc46b',
             },
             '.cm-tooltip-autocomplete ul li[aria-selected]': {
-              backgroundColor: 'rgba(34,211,238,0.18)',
-              color: '#22d3ee',
+              backgroundColor: '#ffb648',
+              color: '#1b1104',
             },
           },
           { dark: true }
         ),
-        // Palavras-chave em magenta, strings em lima, números em âmbar —
-        // as mesmas três cores usadas fora do editor.
+        // Tudo em tons de âmbar, como um monitor monocromático de verdade:
+        // o realce vem de brilho e peso, não de cores diferentes.
         syntaxHighlighting(
           HighlightStyle.define([
-            { tag: tags.keyword, color: '#ff3d9a', fontWeight: 'bold' },
-            { tag: [tags.string, tags.special(tags.string)], color: '#a3e635' },
-            { tag: tags.number, color: '#fbbf24' },
-            { tag: tags.comment, color: '#6b8299', fontStyle: 'italic' },
-            { tag: [tags.operator, tags.punctuation], color: '#9fb3c8' },
-            { tag: [tags.variableName, tags.propertyName], color: '#dbf4fb' },
-            { tag: tags.typeName, color: '#22d3ee' },
+            { tag: tags.keyword, color: '#fff0c9', fontWeight: 'bold' },
+            { tag: [tags.string, tags.special(tags.string)], color: '#ffd98f', fontStyle: 'italic' },
+            { tag: tags.number, color: '#ffe3a8' },
+            { tag: tags.comment, color: '#8f6a36', fontStyle: 'italic' },
+            { tag: [tags.operator, tags.punctuation], color: '#d99a4a' },
+            { tag: [tags.variableName, tags.propertyName], color: '#ffb648' },
+            { tag: tags.typeName, color: '#ffcf7a' },
           ]),
-          { fallback: true }
         ),
         EditorView.lineWrapping,
         placeholder('-- Escreva SQL aqui. Ctrl+Espaço completa tabelas e colunas.\n-- Ctrl+Enter executa.'),
@@ -106,8 +106,8 @@ export function SqlEditor({ value, onChange, onRun, completionSchema }: Props) {
           if (update.docChanged) handlers.current.onChange(update.state.doc.toString());
         }),
         EditorView.theme({
-          '&': { height: '100%', fontSize: '13px' },
-          '.cm-scroller': { fontFamily: "'JetBrains Mono', ui-monospace, monospace", lineHeight: '1.6' },
+          '&': { height: '100%', fontSize: '14px' },
+          '.cm-scroller': { fontFamily: "'IBM Plex Mono', ui-monospace, monospace", lineHeight: '1.6' },
           '&.cm-focused': { outline: 'none' },
         }),
       ],

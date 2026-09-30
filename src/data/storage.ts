@@ -47,4 +47,7 @@ export const STORAGE_KEYS = {
   avatar: 'sqlgame_hacker_avatar',
   onboardingSeen: 'sqlgame_onboarding_seen',
   locale: 'sqlgame_locale',
+  notes: 'sqlgame_case_notes',
+  practicedLessons: 'sqlgame_practiced_lessons',
+  muted: 'sqlgame_muted',
 } as const;

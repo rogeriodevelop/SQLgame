@@ -62,11 +62,11 @@ export type Rank = { title: string; badge: string; minScore: number };
  * resolver bem vale mais que resolver muito.
  */
 export const RANKS: Rank[] = [
-  { title: 'Cadete de Dados', badge: '🔰', minScore: 0 },
-  { title: 'Agente de SQL', badge: '🕵️', minScore: 2500 },
-  { title: 'Investigador Pleno', badge: '🔎', minScore: 8000 },
-  { title: 'Detetive Chefe de Dados', badge: '🗂️', minScore: 20000 },
-  { title: 'Lenda da Hydra Syndicate', badge: '👑', minScore: 40000 },
+  { title: 'Recruta da Delegacia', badge: '🔰', minScore: 0 },
+  { title: 'Investigador de Dados', badge: '🕵️', minScore: 2500 },
+  { title: 'Inspetor de Consultas', badge: '🔎', minScore: 8000 },
+  { title: 'Detetive Chefe', badge: '🗂️', minScore: 20000 },
+  { title: 'Lenda da Divisão de Dados', badge: '👑', minScore: 40000 },
 ];
 
 export function rankFor(score: number): Rank {

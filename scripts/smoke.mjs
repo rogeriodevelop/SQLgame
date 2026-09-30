@@ -90,7 +90,7 @@ try {
   await page.waitForTimeout(4000);
 
   const opening = await bodyText();
-  const dbUp = !/CONECTANDO|Falha ao montar/i.test(opening);
+  const dbUp = !/ABRINDO O ARQUIVO|Falha ao abrir/i.test(opening);
   record('banco do caso carrega (WASM instancia)', dbUp, dbUp ? '' : opening.slice(0, 110));
   record('esquema do caso e exibido', /agentes/i.test(opening));
 
@@ -99,7 +99,7 @@ try {
     // Acusar sem prova precisa ser barrado — é a regra central do jogo.
     await step('acusacao sem prova e barrada', async () => {
       await page.locator('#answer-input').fill('Ana Reis');
-      await page.getByRole('button', { name: /enviar dossi/i }).click();
+      await page.getByRole('button', { name: /emitir mandado/i }).click();
       await page.waitForTimeout(600);
       if (!/sem provas/i.test(await bodyText())) throw new Error('acusacao passou sem prova');
     });
@@ -114,7 +114,7 @@ try {
 
     await step('caso fecha quando ha prova e pontua', async () => {
       await page.locator('#answer-input').fill('Ana Reis');
-      await page.getByRole('button', { name: /enviar dossi/i }).click();
+      await page.getByRole('button', { name: /emitir mandado/i }).click();
       await page.waitForTimeout(1000);
       const final = await bodyText();
       if (!/Caso resolvido/i.test(final)) throw new Error('caso nao fechou');

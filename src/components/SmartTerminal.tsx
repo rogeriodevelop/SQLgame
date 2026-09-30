@@ -1,225 +1,177 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { Terminal as TerminalIcon, Play, AlertTriangle, Layers, RotateCcw } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { parseSchema, toCompletionSchema } from '../domain/schemaModel';
+import { Play, RotateCcw, Layers, FileWarning } from 'lucide-react';
+import type { TableModel } from '../domain/schemaModel';
+import { toCompletionSchema } from '../domain/schemaModel';
+import { explainError } from '../domain/tutor';
 
 // CodeMirror responde por ~370 kB do pacote. Carregá-lo à parte deixa a tela
-// inicial leve; ele chega enquanto o jogador lê o briefing.
+// inicial leve; ele chega enquanto o jogador lê o memorando.
 const SqlEditor = lazy(() =>
   import('./SqlEditor').then(module => ({ default: module.SqlEditor }))
 );
 
 type Props = {
-  /** Schema do caso atual, usado para alimentar o autocomplete. */
-  schema: string;
+  /** Tabelas do caso: alimentam o autocomplete e o parecer sobre erros. */
+  tables: readonly TableModel[];
+  code: string;
+  onCodeChange: (code: string) => void;
   queryError: string | null;
   onExecute: (sql: string) => void;
   /** Recria o banco do caso, desfazendo DELETE/DROP acidentais. */
   onResetDatabase: () => void;
 };
 
-/** Espaço reservado enquanto o editor é baixado. */
 function EditorSkeleton() {
   return (
-    <p
-      role="status"
-      style={{
-        padding: 'var(--sp-4)',
-        color: 'var(--text-faint)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 'var(--fs-xs)',
-      }}
-    >
-      -- carregando editor…
+    <p role="status" className="crt-text" style={{ padding: 'var(--sp-4)', fontSize: 'var(--fs-sm)' }}>
+      CARREGANDO EDITOR…<span className="type-caret" />
     </p>
   );
 }
 
 /** Rótulo curto de uma statement, para a aba. */
 function statementLabel(statement: string): string {
-  const match = statement.match(/(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b.{0,32}/i);
+  const match = statement.match(/(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b.{0,28}/i);
   return match ? `${match[0].replace(/\s+/g, ' ')}…` : 'Consulta';
 }
 
-export function SmartTerminal({ schema, queryError, onExecute, onResetDatabase }: Props) {
-  const [code, setCode] = useState('');
+/**
+ * O terminal da delegacia: um monitor de fósforo âmbar onde o jogador
+ * escreve SQL. Quando o banco recusa a consulta, o perito explica o porquê.
+ */
+export function SmartTerminal({ tables, code, onCodeChange, queryError, onExecute, onResetDatabase }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const completionSchema = useMemo(
-    () => toCompletionSchema(parseSchema(schema)),
-    [schema]
-  );
-
-  const statements = useMemo(
-    () => code.split(';').map(s => s.trim()).filter(Boolean),
-    [code]
-  );
+  const completionSchema = useMemo(() => toCompletionSchema([...tables]), [tables]);
+  const statements = useMemo(() => code.split(';').map(s => s.trim()).filter(Boolean), [code]);
 
   const hasMultiple = statements.length > 1;
   // Clamp em vez de zerar num efeito: apagar uma statement não pode deixar o
-  // índice apontando para fora da lista, e resolver isso com setState dentro de
-  // useEffect provoca um render extra (e o aviso do eslint react-hooks).
+  // índice apontando para fora da lista.
   const safeIndex = Math.min(activeIndex, Math.max(statements.length - 1, 0));
   const selectedQuery = statements[safeIndex] ?? '';
+
+  const explanation = useMemo(
+    () => (queryError ? explainError(queryError, tables) : null),
+    [queryError, tables]
+  );
 
   const run = () => {
     if (selectedQuery) onExecute(selectedQuery);
   };
 
   return (
-    <section
-      className="glass-morphism glow-blue"
-      aria-label="Terminal SQL"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        overflow: 'hidden',
-        border: '1px solid rgba(34, 211, 238, 0.15)',
-      }}
-    >
-      <header
-        style={{
-          padding: 'var(--sp-2) var(--sp-4)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 'var(--sp-2)',
-          background: 'rgba(0,0,0,0.3)',
-          borderBottom: '1px solid var(--border-color)',
-          flexShrink: 0,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
+    <section className="monitor" aria-label="Terminal SQL" style={{ height: '100%' }}>
+      <div className="monitor-screen">
+        <header
+          className="crt-text"
           style={{
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
             gap: 'var(--sp-2)',
+            padding: '8px 12px',
+            borderBottom: '1px dashed rgba(255,182,72,0.3)',
             fontSize: 'var(--fs-xs)',
-            fontWeight: 700,
-            letterSpacing: '1px',
-            color: 'var(--text-muted)',
+            flexWrap: 'wrap',
+            position: 'relative',
+            zIndex: 4,
           }}
         >
-          <TerminalIcon size={14} style={{ color: 'var(--accent-primary)' }} aria-hidden />
-          TERMINAL SQL
-          <span style={{ fontWeight: 400, letterSpacing: 0, color: 'var(--text-faint)' }}>
-            Ctrl+Enter executa · Ctrl+Espaço completa
+          <span style={{ letterSpacing: '0.12em' }}>C:\DELEGACIA\CONSULTAS&gt; SQLITE</span>
+          <span style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+            <button type="button" className="btn btn-crt" onClick={onResetDatabase} title="Restaurar o banco do caso ao estado original">
+              <RotateCcw size={12} aria-hidden /> Restaurar banco
+            </button>
+            <button type="button" className="btn btn-crt-solid" onClick={run} disabled={!selectedQuery}>
+              <Play size={12} aria-hidden /> EXECUTAR
+            </button>
           </span>
+        </header>
+
+        {hasMultiple && (
+          <div role="tablist" aria-label="Consultas no editor" style={{ display: 'flex', overflowX: 'auto', borderBottom: '1px dashed rgba(255,182,72,0.25)', flexShrink: 0, position: 'relative', zIndex: 4 }}>
+            {statements.map((statement, index) => {
+              const isActive = index === safeIndex;
+              return (
+                <button
+                  key={index}
+                  role="tab"
+                  type="button"
+                  aria-selected={isActive}
+                  onClick={() => setActiveIndex(index)}
+                  title={statement}
+                  className="crt-text"
+                  style={{
+                    padding: '5px 12px',
+                    fontSize: 'var(--fs-xs)',
+                    whiteSpace: 'nowrap',
+                    border: 'none',
+                    background: isActive ? 'rgba(255,182,72,0.14)' : 'transparent',
+                    opacity: isActive ? 1 : 0.6,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <Layers size={11} aria-hidden />
+                  {statementLabel(statement)}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div style={{ flex: 1, minHeight: 0, position: 'relative', zIndex: 2 }}>
+          <Suspense fallback={<EditorSkeleton />}>
+            <SqlEditor value={code} onChange={onCodeChange} onRun={run} completionSchema={completionSchema} />
+          </Suspense>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={onResetDatabase}
-            title="Restaurar o banco do caso ao estado original"
-            style={{ padding: '0.3rem 0.6rem', fontSize: 'var(--fs-xs)', borderRadius: 'var(--radius-sm)' }}
+        {explanation && (
+          <div
+            role="alert"
+            style={{
+              position: 'relative',
+              zIndex: 4,
+              flexShrink: 0,
+              maxHeight: '45%',
+              overflowY: 'auto',
+              margin: '0 10px 10px',
+              padding: '10px 12px',
+              border: '1px solid rgba(255,120,80,0.55)',
+              background: 'rgba(60, 12, 4, 0.55)',
+              color: '#ffd6b0',
+              fontSize: 'var(--fs-sm)',
+              lineHeight: 1.55,
+            }}
           >
-            <RotateCcw size={12} aria-hidden /> Restaurar banco
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={run}
-            disabled={!selectedQuery}
-            style={{ padding: '0.35rem 0.85rem', fontSize: 'var(--fs-xs)', borderRadius: 'var(--radius-sm)' }}
-          >
-            <Play size={11} aria-hidden /> EXECUTAR
-          </button>
-        </div>
-      </header>
-
-      {hasMultiple && (
-        <div
-          role="tablist"
-          aria-label="Consultas no editor"
-          style={{
-            display: 'flex',
-            overflowX: 'auto',
-            borderBottom: '1px solid var(--border-color)',
-            background: 'rgba(0,0,0,0.2)',
-            flexShrink: 0,
-          }}
-        >
-          {statements.map((statement, index) => {
-            const isActive = index === safeIndex;
-            return (
-              <button
-                key={index}
-                role="tab"
-                type="button"
-                aria-selected={isActive}
-                onClick={() => setActiveIndex(index)}
-                title={statement}
-                style={{
-                  padding: '0.45rem 0.85rem',
-                  fontSize: 'var(--fs-xs)',
-                  whiteSpace: 'nowrap',
-                  border: 'none',
-                  background: 'transparent',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-mono)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--sp-1)',
-                  position: 'relative',
-                }}
-              >
-                <Layers size={11} aria-hidden />
-                {statementLabel(statement)}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTabIndicator"
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: '2px',
-                      background: 'var(--accent-primary)',
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <div style={{ flex: 1, minHeight: 0, background: 'rgba(0, 0, 0, 0.1)' }}>
-        <Suspense fallback={<EditorSkeleton />}>
-          <SqlEditor
-            value={code}
-            onChange={setCode}
-            onRun={run}
-            completionSchema={completionSchema}
-          />
-        </Suspense>
+            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffb08a', fontFamily: 'var(--font-mono)' }}>
+              <FileWarning size={14} aria-hidden /> PARECER DO PERITO: {explanation.title}
+            </strong>
+            <p style={{ marginTop: '4px' }}>
+              <span style={{ color: '#ffb08a' }}>Por quê: </span>
+              {explanation.why}
+            </p>
+            <p style={{ marginTop: '2px' }}>
+              <span style={{ color: '#ffb08a' }}>Como corrigir: </span>
+              {explanation.fix}
+            </p>
+            <p style={{ marginTop: '4px', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', opacity: 0.7 }}>
+              sqlite: {queryError}
+            </p>
+          </div>
+        )}
       </div>
 
-      {queryError && (
-        <div
-          role="alert"
-          style={{
-            color: '#fecdd3',
-            padding: 'var(--sp-2) var(--sp-4)',
-            fontSize: 'var(--fs-xs)',
-            background: 'rgba(255, 77, 109,0.1)',
-            borderTop: '1px solid rgba(255, 77, 109,0.25)',
-            display: 'flex',
-            gap: 'var(--sp-2)',
-            alignItems: 'flex-start',
-            flexShrink: 0,
-          }}
-        >
-          <AlertTriangle size={13} style={{ marginTop: '1px', flexShrink: 0, color: 'var(--error)' }} aria-hidden />
-          <span style={{ fontFamily: 'var(--font-mono)' }}>{queryError}</span>
-        </div>
-      )}
+      <div className="monitor-chin">
+        <span>DATACOP · 2000</span>
+        <span style={{ fontFamily: 'var(--font-ui)', letterSpacing: 0, color: '#8f846f' }}>
+          Ctrl+Enter executa · Ctrl+Espaço completa
+        </span>
+        <span className="power-led" aria-hidden />
+      </div>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Source+Sans+3:wght@400;600;700&family=Special+Elite&display=swap');
 @import './styles/tokens.css';
 
 * {
@@ -7,40 +7,60 @@
   padding: 0;
 }
 
+html { color-scheme: dark; }
+
 body {
-  background-color: var(--bg-void);
-  color: var(--text-main);
+  background-color: var(--night);
+  color: var(--on-dark);
   font-family: var(--font-ui);
   font-size: var(--fs-md);
+  line-height: 1.5;
   overflow-x: hidden;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Fundo: malha técnica + duas auras neon fixas. Substitui os dois radial
-   gradients azulados, que não liam como nada em particular. */
+/* A mesa: madeira escura com veios, iluminada por uma luminária no alto à
+   esquerda. Tudo em gradientes — nenhuma imagem baixada. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-color: var(--bg-void);
-  background-image:
-    radial-gradient(ellipse at 12% 0%, rgba(34, 211, 238, 0.1) 0%, transparent 45%),
-    radial-gradient(ellipse at 88% 100%, rgba(255, 61, 154, 0.08) 0%, transparent 45%),
-    linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+  background:
+    radial-gradient(ellipse 70% 60% at 22% 0%, rgba(255, 196, 120, 0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.7) 0%, transparent 60%),
+    repeating-linear-gradient(
+      93deg,
+      rgba(0, 0, 0, 0.16) 0 2px,
+      transparent 2px 7px,
+      rgba(255, 220, 170, 0.025) 7px 8px,
+      transparent 8px 19px
+    ),
+    linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
 }
+
+/* Vinheta: escurece as bordas como uma sala iluminada só pela luminária. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 45% 35%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+#root { position: relative; z-index: 1; }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
-code, pre, .terminal { font-family: var(--font-mono); }
+code, pre { font-family: var(--font-mono); }
 
 .sr-only {
   position: absolute;
@@ -53,220 +73,482 @@ code, pre, .terminal { font-family: var(--font-mono); }
   border: 0;
 }
 
-/* ── Painel de HUD ────────────────────────────────────────────────────────
-   Nome mantido (.glass-morphism) porque todos os componentes já o usam; o
-   visual é que mudou de vidro fosco arredondado para painel angular com
-   canto superior direito chanfrado e colchetes de canto. */
-.glass-morphism {
-  position: relative;
-  background: var(--glass-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(34, 211, 238, 0.06);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  /* Chanfro no canto superior direito — a assinatura angular do estilo. */
-  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
-}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.18); }
+::-webkit-scrollbar-thumb { background: rgba(125, 95, 42, 0.55); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 163, 90, 0.7); }
 
-.glass-morphism:hover {
-  border-color: var(--border-strong);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(34, 211, 238, 0.09);
-}
+/* ── Estrutura ─────────────────────────────────────────────────────────── */
 
-/* Colchetes de canto, desenhados só com borda — nada de imagem. */
-.glass-morphism::before,
-.glass-morphism::after {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  pointer-events: none;
-  opacity: 0.55;
-}
-
-.glass-morphism::before {
-  top: 0;
-  left: 0;
-  border-top: 2px solid var(--neon-cyan);
-  border-left: 2px solid var(--neon-cyan);
-}
-
-.glass-morphism::after {
-  bottom: 0;
-  right: 0;
-  border-bottom: 2px solid var(--neon-magenta);
-  border-right: 2px solid var(--neon-magenta);
-}
-
-.glow-blue { box-shadow: 0 0 22px rgba(34, 211, 238, 0.12); }
-.glow-amber { box-shadow: 0 0 22px rgba(255, 61, 154, 0.12); }
-
-/* ── Título com glitch cromático ─────────────────────────────────────────
-   Duas cópias deslocadas em ciano e magenta, recortadas em faixas. */
-.glitch {
-  position: relative;
-  display: inline-block;
-}
-
-.glitch::before,
-.glitch::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.glitch::before {
-  color: var(--neon-cyan);
-  transform: translate(-2px, 0);
-  clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
-  animation: glitch-x 3.5s infinite steps(2, end);
-}
-
-.glitch::after {
-  color: var(--neon-magenta);
-  transform: translate(2px, 0);
-  clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
-  animation: glitch-x 2.7s infinite reverse steps(2, end);
-}
-
-@keyframes glitch-x {
-  0%, 92%, 100% { transform: translate(0, 0); opacity: 0; }
-  93% { transform: translate(-3px, 1px); opacity: 0.85; }
-  96% { transform: translate(3px, -1px); opacity: 0.7; }
-}
-
-.editor-gutter {
-  background: rgba(0, 0, 0, 0.2);
-  border-right: 1px solid var(--border-color);
+.app-shell {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  padding: var(--sp-3) var(--sp-2);
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  line-height: 1.65;
-  user-select: none;
-  flex-shrink: 0;
-}
-
-/* Scrollbar em ciano, coerente com o resto */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
-::-webkit-scrollbar-thumb {
-  background: rgba(34, 211, 238, 0.25);
-  border-radius: 0;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.45); }
-
-.container {
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: var(--sp-5);
-}
-
-/* ── Layout responsivo ─────────────────────────────────────────────────── */
-.grid-layout {
-  display: grid;
-  grid-template-columns: minmax(300px, 340px) minmax(0, 1fr) minmax(300px, 340px);
   gap: var(--sp-4);
-  height: calc(100vh - 5.5rem);
 }
+
+.desk {
+  display: grid;
+  grid-template-columns: minmax(300px, 350px) minmax(0, 1fr) minmax(310px, 370px);
+  gap: var(--sp-4);
+  grid-template-rows: minmax(0, 1fr);
+  height: calc(100vh - 6.25rem);
+  min-height: 560px;
+}
+
+.desk > * {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-height: 0;
+  min-width: 0;
+}
+
+.desk-scroll { overflow-y: auto; padding: 2px 6px 6px 2px; }
 
 @media (max-width: 1280px) {
-  .grid-layout {
-    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(0, auto);
+  .desk {
+    grid-template-columns: minmax(290px, 340px) minmax(0, 1fr);
+    grid-template-rows: auto;
     height: auto;
-    min-height: calc(100vh - 5.5rem);
   }
-  .grid-layout > :nth-child(2) { min-height: 60vh; }
-  .grid-layout > :nth-child(3) { grid-column: 1 / -1; }
+  .desk > :nth-child(2) { min-height: 78vh; }
+  .desk > :nth-child(3) { grid-column: 1 / -1; }
 }
 
 @media (max-width: 900px) {
-  .container { padding: var(--sp-3); }
-  .grid-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    height: auto;
-    gap: var(--sp-3);
-  }
-  .grid-layout > * { min-height: 0 !important; height: auto !important; }
-  .grid-layout > :nth-child(2) { min-height: 55vh; }
-  .grid-layout > :nth-child(3) { grid-column: auto; }
+  .app-shell { padding: var(--sp-3); }
+  .desk { grid-template-columns: 1fr; gap: var(--sp-3); }
+  .desk > :nth-child(2) { min-height: 80vh; }
+  .desk > :nth-child(3) { grid-column: auto; }
+  .desk-scroll { overflow: visible; }
 }
 
-/* ── Botões angulares ────────────────────────────────────────────────────
-   Canto inferior direito cortado, rótulo em display maiúscula espaçada. */
-.btn {
-  padding: 0.6rem 1.2rem;
-  border: 1px solid transparent;
+/* ── Materiais ─────────────────────────────────────────────────────────── */
+
+/* Folha de papel envelhecido. Todo texto longo do jogo mora aqui. */
+.paper {
+  position: relative;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: var(--grain), linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(0, 0, 0, 0.03));
   border-radius: var(--radius-sm);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  box-shadow: var(--shadow-paper);
+}
+
+/* Pasta de arquivo: manila, com aba no alto à esquerda. */
+.folder {
+  position: relative;
+  margin-top: 22px;
+  color: var(--ink);
+  background-color: var(--manila);
+  background-image: var(--grain), linear-gradient(170deg, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.08));
+  border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+  box-shadow: var(--shadow-paper);
+}
+
+.folder-tab {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  height: 22px;
+  padding: 3px 16px 0 12px;
+  background-color: var(--manila);
+  background-image: var(--grain);
+  border-radius: var(--radius-md) 10px 0 0;
+  font-family: var(--font-type);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* Ficha pautada, como as de fichário de delegacia. */
+.index-card {
+  position: relative;
+  color: var(--ink);
+  background-color: #fbf7ec;
+  background-image:
+    linear-gradient(transparent 27px, rgba(163, 32, 28, 0.55) 27px, rgba(163, 32, 28, 0.55) 28.5px, transparent 28.5px),
+    repeating-linear-gradient(transparent 0 21px, rgba(36, 71, 122, 0.16) 21px 22px);
+  background-position: 0 0, 0 29px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Quadro de cortiça com moldura de madeira. */
+.cork {
+  position: relative;
+  background-color: var(--cork);
+  background-image:
+    radial-gradient(rgba(60, 35, 15, 0.35) 1px, transparent 1.5px),
+    radial-gradient(rgba(255, 225, 180, 0.14) 1px, transparent 1.5px),
+    var(--grain);
+  background-size: 7px 7px, 11px 11px, auto;
+  background-position: 0 0, 3px 4px, 0 0;
+  border: 10px solid var(--wood-light);
+  border-image: linear-gradient(135deg, #5a3d24, #2d1d10 60%, #4a321d) 1;
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.45), var(--shadow-paper);
+}
+
+/* Formulário contínuo de impressora matricial, com faixas verdes e furos
+   de tracionamento nas margens. */
+.printout {
+  position: relative;
+  color: var(--ink);
+  background-color: var(--printout);
+  background-image:
+    radial-gradient(circle at 9px 11px, var(--wood-dark) 3.2px, transparent 3.8px),
+    radial-gradient(circle at calc(100% - 9px) 11px, var(--wood-dark) 3.2px, transparent 3.8px),
+    repeating-linear-gradient(180deg, var(--printout-bar) 0 30px, transparent 30px 60px);
+  background-size: 100% 22px, 100% 22px, 100% 60px;
+  background-repeat: repeat-y;
+  padding: 0 22px;
+  box-shadow: var(--shadow-paper);
+}
+
+.printout::before,
+.printout::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-left: 1px dashed rgba(0, 0, 0, 0.18);
+}
+.printout::before { left: 18px; }
+.printout::after { right: 18px; }
+
+/* Etiqueta de máquina de escrever, usada como rótulo de seção. */
+.type-label {
+  font-family: var(--font-type);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--ink-soft);
+}
+
+.on-dark .type-label, .type-label.on-dark { color: var(--on-dark-muted); }
+
+/* Marca-texto amarelo sobre a frase que importa. */
+.highlighter {
+  background: linear-gradient(100deg, transparent 0.3em, rgba(255, 221, 87, 0.65) 0.4em, rgba(255, 221, 87, 0.5) 96%, transparent);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0 0.2em;
+}
+
+/* Tacha que prende papel ao quadro. */
+.pushpin {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8a7a 0 2px, var(--red-bright) 3px, #6d100c 100%);
+  box-shadow: 1px 3px 3px rgba(0, 0, 0, 0.45);
+  z-index: 2;
+}
+
+/* Polaroid de suspeito. */
+.polaroid {
+  background: #fbfaf5;
+  padding: 6px 6px 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+}
+
+/* Carimbo de borracha: tinta vermelha falhada, levemente torto. */
+.stamp {
+  display: inline-block;
+  font-family: var(--font-type);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--red);
+  border: 3px double currentColor;
+  padding: 0.15em 0.6em;
+  transform: rotate(-8deg);
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  -webkit-mask-image: var(--grain), linear-gradient(#000, #000);
+  -webkit-mask-composite: source-out;
+  mask-image: var(--grain), linear-gradient(#000, #000);
+  mask-composite: exclude;
+}
+
+.stamp-in { animation: stamp-in 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+
+@keyframes stamp-in {
+  0% { transform: scale(2.4) rotate(-14deg); opacity: 0; }
+  70% { transform: scale(0.94) rotate(-8deg); opacity: 0.9; }
+  100% { transform: scale(1) rotate(-8deg); opacity: 0.85; }
+}
+
+/* ── Monitor de fósforo âmbar ──────────────────────────────────────────── */
+
+.monitor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 14px 10px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #4a443a 0%, #2f2b25 45%, #24211c 100%);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.12),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.5),
+    var(--shadow-lifted);
+  min-height: 0;
+}
+
+.monitor-screen {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 12px / 16px;
+  background: radial-gradient(ellipse at 50% 40%, #1e1408 0%, var(--crt-bg) 70%, #080502 100%);
+  color: var(--amber);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.85), inset 0 0 3px rgba(255, 170, 60, 0.3);
+}
+
+/* Linhas de varredura só no vidro do monitor, não na tela toda. */
+.monitor-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  border-radius: inherit;
+  z-index: 3;
+}
+
+.monitor-chin {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--sp-2);
-  position: relative;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  padding: 8px 6px 0;
+  font-family: var(--font-type);
+  font-size: var(--fs-xs);
+  color: #a79c88;
+  letter-spacing: 0.12em;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.22) 0%, rgba(34, 211, 238, 0.06) 100%);
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
-  text-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
-  box-shadow: var(--glow-cyan), inset 0 0 12px rgba(34, 211, 238, 0.08);
+.power-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7bd35f;
+  box-shadow: 0 0 6px #7bd35f;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.38) 0%, rgba(34, 211, 238, 0.12) 100%);
-  box-shadow: 0 0 22px rgba(34, 211, 238, 0.55), inset 0 0 16px rgba(34, 211, 238, 0.14);
-  color: #d9fbff;
+.crt-text {
+  color: var(--amber);
+  text-shadow: var(--amber-glow);
+  font-family: var(--font-mono);
 }
 
-/* Ação de risco: acusar. Magenta separa "consultar" de "comprometer-se". */
-.btn-accent {
-  background: linear-gradient(135deg, rgba(255, 61, 154, 0.24) 0%, rgba(255, 61, 154, 0.06) 100%);
-  border-color: var(--neon-magenta);
-  color: var(--neon-magenta);
-  text-shadow: 0 0 8px rgba(255, 61, 154, 0.5);
-  box-shadow: var(--glow-magenta), inset 0 0 12px rgba(255, 61, 154, 0.08);
+/* ── Abas ──────────────────────────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  gap: 3px;
+  padding: 0 6px;
+  flex-shrink: 0;
+  overflow-x: auto;
 }
 
-.btn-accent:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(255, 61, 154, 0.4) 0%, rgba(255, 61, 154, 0.12) 100%);
-  box-shadow: 0 0 22px rgba(255, 61, 154, 0.55), inset 0 0 16px rgba(255, 61, 154, 0.14);
-  color: #ffe4f1;
+.tab {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 5px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  background: #b89b64;
+  color: var(--ink-soft);
+  font-family: var(--font-type);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 6px rgba(0, 0, 0, 0.12);
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.btn-ghost {
-  background: rgba(34, 211, 238, 0.04);
-  color: var(--text-muted);
-  border-color: var(--border-color);
+.tab:hover { background: #c7aa70; }
+
+.tab[aria-selected='true'] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+  transform: translateY(1px);
 }
 
-.btn-ghost:hover:not(:disabled) {
-  background: rgba(34, 211, 238, 0.1);
-  color: var(--neon-cyan);
-  border-color: var(--border-strong);
+.tab-badge {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
 }
+
+.tab-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* ── Botões ────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 0.55rem 1.05rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn:active:not(:disabled) { transform: translateY(1px); }
 
 .btn:disabled {
-  opacity: 0.3;
+  opacity: 0.45;
   cursor: not-allowed;
-  box-shadow: none !important;
-  text-shadow: none;
 }
+
+/* Ação principal: latão polido. */
+.btn-brass {
+  background: linear-gradient(180deg, var(--brass-light) 0%, var(--brass) 55%, #a8843f 100%);
+  border-color: var(--brass-dark);
+  color: #2a1d0c;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.btn-brass:hover:not(:disabled) { filter: brightness(1.07); }
+
+/* Ação irreversível: acusar. Vermelho de carimbo. */
+.btn-red {
+  background: linear-gradient(180deg, #c8402f 0%, var(--red) 100%);
+  border-color: #6d100c;
+  color: #fff3ea;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 4px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-type);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.btn-red:hover:not(:disabled) { filter: brightness(1.08); }
+
+/* Botão discreto sobre papel. */
+.btn-ink {
+  background: transparent;
+  border-color: rgba(33, 27, 21, 0.35);
+  color: var(--ink);
+}
+.btn-ink:hover:not(:disabled) { background: rgba(33, 27, 21, 0.07); border-color: var(--ink); }
+
+/* Botão discreto sobre o escuro. */
+.btn-ghost {
+  background: rgba(239, 229, 207, 0.06);
+  border-color: rgba(239, 229, 207, 0.22);
+  color: var(--on-dark);
+}
+.btn-ghost:hover:not(:disabled) { background: rgba(239, 229, 207, 0.12); border-color: var(--brass); }
+
+/* Tecla do monitor: âmbar sobre o vidro. */
+.btn-crt {
+  background: rgba(255, 182, 72, 0.08);
+  border-color: rgba(255, 182, 72, 0.4);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  text-shadow: var(--amber-glow);
+  padding: 0.3rem 0.7rem;
+  font-size: var(--fs-xs);
+}
+.btn-crt:hover:not(:disabled) { background: rgba(255, 182, 72, 0.18); }
+
+.btn-crt-solid {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #1b1104;
+  font-family: var(--font-mono);
+  padding: 0.3rem 0.8rem;
+  font-size: var(--fs-xs);
+  box-shadow: 0 0 12px rgba(255, 170, 60, 0.45);
+}
+.btn-crt-solid:hover:not(:disabled) { filter: brightness(1.08); }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.icon-btn:hover { background: rgba(0, 0, 0, 0.08); border-color: rgba(0, 0, 0, 0.2); }
+
+/* ── Campos ────────────────────────────────────────────────────────────── */
+
+.field {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  border-bottom: 2px solid var(--ink-soft);
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--ink);
+  font-family: var(--font-type);
+  font-size: var(--fs-md);
+  outline: none;
+}
+.field:focus { background: rgba(255, 255, 255, 0.75); border-bottom-color: var(--blue-ink); }
+.field[aria-invalid='true'] { border-bottom-color: var(--red); }
+.field::placeholder { color: var(--ink-faint); }
+
+.notes-field {
+  width: 100%;
+  min-height: 160px;
+  resize: vertical;
+  border: none;
+  outline: none;
+  padding: 4px 10px 10px 40px;
+  color: var(--blue-ink);
+  font-family: var(--font-type);
+  font-size: var(--fs-md);
+  line-height: 24px;
+  background-color: #fbf7ec;
+  background-image:
+    linear-gradient(90deg, transparent 32px, rgba(163, 32, 28, 0.45) 32px 33.5px, transparent 33.5px),
+    repeating-linear-gradient(transparent 0 23px, rgba(36, 71, 122, 0.2) 23px 24px);
+  background-attachment: local;
+}
+
+/* ── Animações ─────────────────────────────────────────────────────────── */
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -277,128 +559,46 @@ code, pre, .terminal { font-family: var(--font-mono); }
   75% { transform: translateX(-2px); }
   90% { transform: translateX(2px); }
 }
-
 .shake { animation: shake 0.45s ease; }
 
-/* ── Realce de sintaxe SQL ───────────────────────────────────────────────
-   Fora do CodeMirror (overlay legado e blocos estáticos). */
-.sql-kw { color: var(--neon-magenta); font-weight: 700; }
-.sql-string { color: var(--neon-lime); }
-.sql-number { color: var(--accent-warn); }
-.sql-comment { color: var(--text-faint); font-style: italic; }
+@keyframes caret-blink { 50% { opacity: 0; } }
+.type-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: caret-blink 1s steps(1) infinite;
+}
 
-/* ── Monitor CRT ─────────────────────────────────────────────────────────
-   Scanlines mais presentes agora que a estética assume o registro. */
-.crt-container { position: relative; }
+@keyframes print-in {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.print-in { animation: print-in 0.55s steps(12, end) both; }
 
-.crt-container::before {
-  content: '';
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Chuva na janela da tela de abertura. */
+.rain {
   position: fixed;
-  inset: 0;
-  z-index: 999;
+  inset: -20% 0 0;
   pointer-events: none;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
-    linear-gradient(90deg, rgba(255, 0, 60, 0.05), rgba(0, 255, 200, 0.02), rgba(0, 90, 255, 0.05));
-  background-size: 100% 3px, 6px 100%;
-}
-
-/* Varredura lenta descendo a tela, como um monitor sendo lido. */
-.crt-container::after {
-  content: '';
-  position: fixed;
-  left: 0;
-  right: 0;
-  height: 120px;
-  z-index: 998;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.045), transparent);
-  animation: crt-sweep 7s linear infinite;
-}
-
-@keyframes crt-sweep {
-  0% { top: -120px; }
-  100% { top: 100%; }
-}
-
-@keyframes crt-flicker {
-  0% { opacity: 0.985; }
-  50% { opacity: 1; }
-  100% { opacity: 0.99; }
-}
-
-.crt-flicker { animation: crt-flicker 0.15s infinite; }
-
-@keyframes neon-glow-pulse {
-  0%, 100% { box-shadow: 0 0 14px rgba(34, 211, 238, 0.25); }
-  50% { box-shadow: 0 0 26px rgba(34, 211, 238, 0.6); }
-}
-
-.pulse-glow-active { animation: neon-glow-pulse 2s infinite ease-in-out; }
-
-.cyber-grid {
-  background-size: 22px 22px;
   background-image:
-    linear-gradient(to right, rgba(34, 211, 238, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+    repeating-linear-gradient(104deg, transparent 0 22px, rgba(190, 210, 235, 0.07) 22px 23px, transparent 23px 61px),
+    repeating-linear-gradient(101deg, transparent 0 37px, rgba(190, 210, 235, 0.05) 37px 38px, transparent 38px 97px);
+  background-size: 100% 240px, 100% 330px;
+  animation: rain-fall 0.55s linear infinite;
 }
 
-/* ── Barras de status ────────────────────────────────────────────────────
-   Segmentadas, como medidor de HUD, em vez de barra contínua lisa. */
-.rpg-bar-container {
-  width: 100%;
-  height: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid var(--border-color);
-  border-radius: 0;
-  overflow: hidden;
-  position: relative;
+@keyframes rain-fall {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: -40px 240px, -50px 330px; }
 }
 
-.rpg-bar-fill {
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Recorte vertical repetido dá o aspecto de células de energia. */
-  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
-  mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
-}
-
-.rpg-bar-fill::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
-  animation: shine-bar 2.4s infinite linear;
-}
-
-@keyframes shine-bar {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* ── Avatar ──────────────────────────────────────────────────────────── */
-.rpg-avatar-hover {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
-}
-
-.rpg-avatar-hover:hover { transform: translateY(-2px) scale(1.05); }
-.rpg-avatar-hover:hover .rpg-avatar-overlay { opacity: 1 !important; }
-
-.rpg-avatar-select-card {
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease !important;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
-}
-
-.rpg-avatar-select-card:hover { transform: translateY(-3px) scale(1.03); }
-
-/* ── Balão de diálogo da E.V.A. ───────────────────────────────────────── */
-.rpg-dialog-bubble {
-  border: 1px solid var(--border-color);
-  border-left: 2px solid var(--neon-cyan);
-  background: rgba(6, 12, 22, 0.92);
-  border-radius: 0;
-  position: relative;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
-}
+/* ── Realce de SQL fora do editor ──────────────────────────────────────── */
+.sql-kw { color: var(--blue-ink); font-weight: 600; }
+.sql-string { color: var(--green-ink); }
+.sql-number { color: #8a5a0c; }
+.sql-comment { color: var(--ink-faint); font-style: italic; }
