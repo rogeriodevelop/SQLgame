@@ -5,6 +5,7 @@ import type { QueryResult } from '../domain/case';
 import { cellText, evidenceId, isSuspect } from '../domain/casefile';
 import { adviceForEmptyResult, explainQuery } from '../domain/tutor';
 import { SqlText } from './SqlText';
+import { PunchCard, TapeReel } from './NoirArt';
 
 type Props = {
   result: QueryResult | null;
@@ -52,8 +53,13 @@ export function ReportPanel(props: Props) {
 function Report({ result, lastSql, reportNumber, reportAt, pinnedIds, suspects, onPinRow, onToggleSuspect }: Props) {
   if (!result) {
     return (
-      <div className="printout tab-panel" role="tabpanel" style={{ display: 'grid', placeItems: 'center', textAlign: 'center' }}>
-        <p style={{ fontFamily: 'var(--font-type)', color: 'var(--ink-faint)', maxWidth: '40ch', lineHeight: 1.6 }}>
+      <div className="printout tab-panel" role="tabpanel" style={{ display: 'grid', placeContent: 'center', textAlign: 'center' }}>
+        <div aria-hidden style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--sp-4)', marginBottom: 'var(--sp-3)', opacity: 0.85 }}>
+          <TapeReel style={{ width: '64px' }} />
+          <PunchCard seed="impressora" style={{ width: '150px', transform: 'rotate(-3deg)' }} />
+          <TapeReel style={{ width: '64px' }} />
+        </div>
+        <p style={{ fontFamily: 'var(--font-type)', color: 'var(--ink-faint)', maxWidth: '40ch', lineHeight: 1.6, margin: '0 auto' }}>
           A impressora está parada.
           <br />
           Escreva uma consulta no terminal e pressione Ctrl+Enter — o resultado sai aqui.

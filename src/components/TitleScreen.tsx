@@ -1,5 +1,6 @@
 import { Play, FolderOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Fingerprint, PunchCard, SpyUnderStreetlamp, TapeReel } from './NoirArt';
 
 type Props = {
   onStart: () => void;
@@ -35,6 +36,15 @@ export function TitleScreen({ onStart, onContinue, hasProgress }: Props) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--sp-5) var(--sp-4)', position: 'relative', overflow: 'hidden' }}>
       <div className="rain" aria-hidden />
+      <div className="title-art title-art-left" aria-hidden>
+        <SpyUnderStreetlamp style={{ height: '100%', width: 'auto' }} />
+      </div>
+      <div className="title-art title-art-right" aria-hidden>
+        <TapeReel style={{ width: '110px', position: 'absolute', right: '150px', bottom: '120px', opacity: 0.8 }} />
+        <TapeReel style={{ width: '80px', position: 'absolute', right: '60px', bottom: '210px', opacity: 0.6 }} />
+        <PunchCard seed="abertura" style={{ width: '230px', position: 'absolute', right: '30px', bottom: '40px', transform: 'rotate(-7deg)', filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))' }} />
+        <Fingerprint color="rgba(201,163,90,0.35)" style={{ width: '90px', position: 'absolute', right: '70px', top: '70px', transform: 'rotate(18deg)' }} />
+      </div>
 
       <motion.main
         initial={{ opacity: 0, y: 16 }}

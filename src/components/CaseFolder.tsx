@@ -5,6 +5,7 @@ import type { Case } from '../domain/case';
 import { DIFFICULTY_COLOR_VARS, DIFFICULTY_LABELS } from '../domain/case';
 import { HINT_PENALTY } from '../domain/scoring';
 import { useTypewriter } from '../hooks/useTypewriter';
+import { PaperClip, SpyPortrait } from './NoirArt';
 
 type Props = {
   currentCase: Case;
@@ -36,7 +37,23 @@ export function CaseFolder({ currentCase, caseNumber, alreadySolved, showHint, u
       <div style={{ padding: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
         <header>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--sp-2)' }}>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--ink)' }}>{currentCase.title}</h2>
+            <h2 style={{ fontSize: '1.4rem', color: 'var(--ink)', flex: 1 }}>{currentCase.title}</h2>
+            {/* Foto de arquivo presa com clipe: o rosto é gerado a partir do id do caso. */}
+            <figure
+              className="polaroid"
+              style={{ position: 'relative', width: collapsed ? '48px' : '70px', flexShrink: 0, transform: 'rotate(3deg)', padding: '4px 4px 6px', marginTop: '-6px' }}
+              title="Foto do arquivo do caso"
+            >
+              <PaperClip style={{ position: 'absolute', top: '-12px', left: '8px', width: '9px', height: '26px' }} />
+              <div style={{ aspectRatio: '6 / 7' }}>
+                <SpyPortrait seed={currentCase.id} lineup />
+              </div>
+              {!collapsed && (
+                <figcaption style={{ fontFamily: 'var(--font-type)', fontSize: '9px', textAlign: 'center', marginTop: '3px', color: 'var(--ink-soft)' }}>
+                  ARQ. {number}
+                </figcaption>
+              )}
+            </figure>
             <button
               type="button"
               className="icon-btn"

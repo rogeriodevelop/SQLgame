@@ -2,6 +2,7 @@ import { X, Gavel } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Evidence } from '../domain/casefile';
 import { EVIDENCE_LIMIT, SUSPECT_LIMIT } from '../domain/casefile';
+import { Fingerprint, PunchCard, SpyPortrait } from './NoirArt';
 
 type Props = {
   evidence: readonly Evidence[];
@@ -15,20 +16,6 @@ type Props = {
 /** Inclinação determinística por posição: o quadro não "treme" a cada render. */
 function tilt(index: number): number {
   return [-2.2, 1.6, -0.8, 2.4, -1.5, 0.9][index % 6];
-}
-
-/** Silhueta genérica de ficha policial. */
-function Silhouette() {
-  return (
-    <svg viewBox="0 0 60 60" width="100%" height="100%" aria-hidden style={{ display: 'block' }}>
-      <rect width="60" height="60" fill="#3a3530" />
-      {[12, 24, 36, 48].map(y => (
-        <line key={y} x1="0" x2="60" y1={y} y2={y} stroke="rgba(255,255,255,0.12)" strokeWidth="0.6" />
-      ))}
-      <circle cx="30" cy="24" r="10" fill="#15120f" />
-      <path d="M10 60 C12 42 20 37 30 37 C40 37 48 42 50 60 Z" fill="#15120f" />
-    </svg>
-  );
 }
 
 /**
@@ -69,7 +56,7 @@ export function EvidenceBoard({ evidence, suspects, onUnpin, onRemoveSuspect, on
                   >
                     <span className="pushpin" style={{ top: '-4px' }} />
                     <div style={{ width: '74px', height: '66px' }}>
-                      <Silhouette />
+                      <SpyPortrait seed={name} lineup />
                     </div>
                     <p style={{ fontFamily: 'var(--font-type)', fontSize: '12px', lineHeight: 1.2, marginTop: '5px', textAlign: 'center', wordBreak: 'break-word' }}>{name}</p>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', marginTop: '3px' }}>
@@ -139,6 +126,20 @@ export function EvidenceBoard({ evidence, suspects, onUnpin, onRemoveSuspect, on
           </ul>
         )}
       </section>
+
+      {/* Referências presas no rodapé do quadro: digital colhida e o
+          cartão perfurado do arquivo. Decorativas. */}
+      <div aria-hidden style={{ marginTop: 'auto', display: 'flex', gap: 'var(--sp-4)', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 'var(--sp-4)', opacity: 0.92 }}>
+        <div className="paper" style={{ position: 'relative', width: '92px', padding: '14px 8px 6px', transform: 'rotate(-4deg)', color: 'var(--ink-soft)' }}>
+          <span className="pushpin" />
+          <Fingerprint color="#2c2a3a" style={{ width: '56px', margin: '0 auto' }} />
+          <p style={{ fontFamily: 'var(--font-type)', fontSize: '10px', textAlign: 'center', marginTop: '2px' }}>DIGITAL · POLEGAR D.</p>
+        </div>
+        <div style={{ position: 'relative', flex: '0 1 180px', transform: 'rotate(2.5deg)', filter: 'drop-shadow(0 3px 4px rgba(0,0,0,0.45))' }}>
+          <span className="pushpin" style={{ top: '-5px' }} />
+          <PunchCard seed="quadro" style={{ width: '100%' }} />
+        </div>
+      </div>
     </div>
   );
 }

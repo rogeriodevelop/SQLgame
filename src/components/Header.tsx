@@ -1,6 +1,7 @@
 import { FolderArchive, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import type { Rank } from '../domain/progress';
 import { RANKS } from '../domain/progress';
+import { Fingerprint } from './NoirArt';
 
 type Props = {
   rank: Rank;
@@ -57,6 +58,7 @@ export function Header({
   return (
     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+        <Fingerprint color="var(--brass)" style={{ width: '22px', alignSelf: 'center', opacity: 0.8 }} />
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: 'var(--on-dark)', letterSpacing: '0.04em' }}>
           GAME <span style={{ color: 'var(--brass)' }}>SQL</span>
         </h1>

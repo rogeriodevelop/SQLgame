@@ -11,6 +11,7 @@ import { ManualPanel } from './ManualPanel';
 import { CaseDiary } from './CaseDiary';
 import { WarrantPanel } from './WarrantPanel';
 import { CaseSolvedCard } from './CaseSolvedCard';
+import { TapeReel } from './NoirArt';
 
 import { useCaseSession } from '../hooks/useCaseSession';
 import { useCaseFile } from '../hooks/useCaseFile';
@@ -287,7 +288,10 @@ function BootScreen({ error }: { error: string | null }) {
         </div>
       ) : (
         <>
-          <div style={{ width: '38px', height: '38px', border: '3px solid rgba(201,163,90,0.2)', borderTopColor: 'var(--brass)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ display: 'flex', gap: 'var(--sp-3)' }}>
+            <TapeReel spinning style={{ width: '72px' }} />
+            <TapeReel spinning style={{ width: '72px' }} />
+          </div>
           <p style={{ fontFamily: 'var(--font-type)', letterSpacing: '0.12em', color: 'var(--on-dark-muted)' }}>ABRINDO O ARQUIVO DO CASO…</p>
         </>
       )}

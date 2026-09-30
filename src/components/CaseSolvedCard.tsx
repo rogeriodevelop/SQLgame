@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Case } from '../domain/case';
 import { buildShareText } from '../domain/share';
 import { starRating } from '../domain/scoring';
+import { SpyPortrait } from './NoirArt';
 
 type Props = {
   currentCase: Case;
@@ -163,7 +164,14 @@ export function CaseSolvedCard(props: Props) {
               </h2>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: 'var(--sp-4)', alignItems: 'start' }}>
-                <p style={{ fontFamily: 'Georgia, serif', fontSize: 'var(--fs-sm)', lineHeight: 1.65, textAlign: 'justify', columnCount: 1 }}>
+                <div>
+                <figure style={{ float: 'left', width: '96px', margin: '4px 12px 6px 0' }}>
+                  <div style={{ aspectRatio: '6 / 7', border: '1px solid var(--ink)', filter: 'sepia(0.25) contrast(1.1)' }}>
+                    <SpyPortrait seed={currentCase.solution} />
+                  </div>
+                  <figcaption style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10px', marginTop: '2px' }}>Foto: arquivo da delegacia</figcaption>
+                </figure>
+                <p style={{ fontFamily: 'Georgia, serif', fontSize: 'var(--fs-sm)', lineHeight: 1.65, textAlign: 'justify' }}>
                   <strong>DA REDAÇÃO</strong> — A delegacia encerrou na noite de hoje a investigação do caso “
                   {currentCase.title}”. Segundo fontes da corporação, o detetive responsável cruzou os registros do
                   banco de dados em {props.queryCount} consulta(s) até chegar a {currentCase.solution}. O trabalho
@@ -171,6 +179,7 @@ export function CaseSolvedCard(props: Props) {
                   {props.wrongAttempts > 0 ? `, com ${props.wrongAttempts} mandado(s) indeferido(s) no caminho` : ', sem nenhum mandado indeferido'}
                   {props.usedHint ? ' e contou com uma pista anônima.' : ' e dispensou pistas anônimas.'}
                 </p>
+                </div>
                 <div style={{ border: '2px solid var(--ink)', padding: 'var(--sp-3)', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                   <span className="type-label">Avaliação da chefia</span>
                   <Stars stars={stars} />

@@ -624,3 +624,18 @@ code, pre { font-family: var(--font-mono); }
 .sql-string { color: var(--green-ink); }
 .sql-number { color: #8a5a0c; }
 .sql-comment { color: var(--ink-faint); font-style: italic; }
+
+/* Ilustrações laterais da tela de abertura; somem em telas estreitas para
+   não disputar espaço com o texto. */
+.title-art {
+  position: fixed;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.title-art-left { left: 2vw; height: min(78vh, 620px); }
+.title-art-right { right: 0; width: 420px; height: 100%; }
+
+@media (max-width: 1100px) {
+  .title-art { display: none; }
+}
